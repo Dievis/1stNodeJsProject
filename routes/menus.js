@@ -31,21 +31,21 @@ router.post('/', async function (req, res, next) {
   try {
     let objInput = {
       text: req.body.text,
-      url: '/' + slugify(req.body.text, {
-        lower: true
-      })
+      url: req.body.url || '/' + slugify(req.body.text, { lower: true }) // Cho phép chỉ định URL
+    };
+    // Thêm đuôi .html nếu chưa có
+    if (!objInput.url.endsWith('.html')) {
+      objInput.url += '.html';
     }
     if (req.body.parent) {
-      let parent = await menuSchema.findOne({
-        text: req.body.parent
-      })
+      let parent = await menuSchema.findOne({ text: req.body.parent });
       objInput.parent = parent._id;
     }
-    let newMenu = new menuSchema(objInput)
+    let newMenu = new menuSchema(objInput);
     await newMenu.save();
-    CreateSuccessResponse(res, 200, newMenu)
+    CreateSuccessResponse(res, 200, newMenu);
   } catch (error) {
-    CreateErrorResponse(res, 404, error.message)
+    CreateErrorResponse(res, 404, error.message);
   }
 });
 
