@@ -28,6 +28,34 @@ async function fetchProducts() {
   }
 }
 
+// Fetch and display categories in the select box
+async function fetchCategories() {
+  try {
+    const response = await fetch("http://localhost:3000/categories");
+    const categories = await response.json();
+    const categorySelect = document.getElementById("productCategory");
+
+    // Clear existing options
+    categorySelect.innerHTML = "";
+
+    // Add a default "Select Category" option
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "Select Category";
+    categorySelect.appendChild(defaultOption);
+
+    // Add categories to the select box
+    categories.forEach(category => {
+      const option = document.createElement("option");
+      option.value = category._id; // Use category ID as value
+      option.textContent = category.name; // Display category name
+      categorySelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+  }
+}
+
 // Add a new product
 document.getElementById("addProduct").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -108,3 +136,6 @@ async function deleteProduct(productId) {
 
 // Fetch products on page load
 fetchProducts();
+
+// Call fetchCategories when the page loads
+fetchCategories();
