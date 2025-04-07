@@ -43,8 +43,14 @@ router.post('/login', LoginValidator, validate, async function (req, res, next) 
     }
 });
 router.get('/logout', function (req, res, next) {
-    CreateCookieResponse(res, 'token', "", Date.now());
-})
+  try {
+    // Xóa cookie chứa token
+    res.clearCookie('token');
+    CreateSuccessResponse(res, 200, "Logged out successfully");
+  } catch (error) {
+    CreateErrorResponse(res, 500, error.message);
+  }
+});
 router.get('/me', check_authentication, function (req, res, next) {
     CreateSuccessResponse(res, 200, req.user)
 })

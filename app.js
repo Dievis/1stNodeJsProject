@@ -39,11 +39,7 @@ app.use('/auth', require('./routes/auth'));
 app.use('/menus', require('./routes/menus'));
 app.use('/roles', require('./routes/roles'));
 app.use('/products', require('./routes/products'));
-app.use('/products.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'products.html'));
-});
 app.use('/categories', require('./routes/categories'));
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
