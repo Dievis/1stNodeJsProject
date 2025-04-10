@@ -1,22 +1,19 @@
-let userSchema = require('../schemas/user')
-let roleSchema = require('../schemas/role')
-let bcrypt = require('bcrypt')
+let userSchema = require('../schemas/user');
+let roleSchema = require('../schemas/role');
+let bcrypt = require('bcrypt');
+
 module.exports = {
   GetAllUser: async function () {
-    return await userSchema.find({}).populate('role')
+    return await userSchema.find({}).populate('role');
   },
   GetUserByID: async function (id) {
-    return await userSchema.findById(id).populate('role')
+    return await userSchema.findById(id).populate('role');
   },
   GetUserByEmail: async function (email) {
-    return await userSchema.findOne({
-      email:email
-    }).populate('role')
+    return await userSchema.findOne({ email: email }).populate('role');
   },
   GetUserByToken: async function (token) {
-    return await userSchema.findOne({
-      resetPasswordToken:token
-    }).populate('role')
+    return await userSchema.findOne({ resetPasswordToken: token }).populate('role');
   },
   CreateAnUser: async function (username, password, email, role) {
     try {
@@ -43,39 +40,52 @@ module.exports = {
     let getUser = await userSchema.findById(id);
     for (const key of Object.keys(body)) {
       if (allowField.includes(key)) {
-        getUser[key] = body[key]
+        if (key === "password") {
+          getUser[key] = bcrypt.hashSync(body[key], 10); // Hash password if updated
+        } else {
+          getUser[key] = body[key];
+        }
       }
     }
     return await getUser.save();
   },
   DeleteAnUser: async function (id) {
-    return await userSchema.findByIdAndUpdate(id, { status: false }
-      , {
-        new: true
-      });
+    return await userSchema.findByIdAndUpdate(
+      id,
+      { status: false }, // Soft delete by setting status to false
+      { new: true } // Return the updated document
+    );
+  },
+  ActivateUser: async function (id) {
+    return await userSchema.findByIdAndUpdate(
+        id,
+        { status: true }, // Activate the account
+        { new: true } // Return the updated document
+    );
   },
   CheckLogin: async function (username, password) {
-    let user = await userSchema.findOne({
-      username: username
-    });
+    console.log("Checking login for:", username);
+    let user = await userSchema.findOne({ username: username });
     if (!user) {
-      throw new Error("username hoac password khong dung")
+        console.log("User not found:", username);
+        throw new Error("Tài khoản không tồn tại hoặc đã bị vô hiệu hóa");
     } else {
-      if (bcrypt.compareSync(password, user.password)) {
-        return user._id
-      } else {
-        throw new Error("username hoac password khong dung")
-      }
+        console.log("User found:", user);
+        if (bcrypt.compareSync(password, user.password)) {
+            console.log("Password match for user:", username);
+            return user._id;
+        } else {
+            console.log("Password mismatch for user:", username);
+            throw new Error("Username hoặc password không đúng");
+        }
     }
   },
   Change_Password: async function (user, oldpassword, newpassword) {
     if (bcrypt.compareSync(oldpassword, user.password)) {
-        //doit pass
-        user.password = newpassword;
-        await user.save();
-    }
-    else{
-      throw new Error("oldpassword khong dung")
+      user.password = bcrypt.hashSync(newpassword, 10); // Hash the new password
+      await user.save();
+    } else {
+      throw new Error("Old password không đúng");
     }
   }
-}
+};

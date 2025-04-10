@@ -1,53 +1,48 @@
 var express = require('express');
 var router = express.Router();
-var menuSchema = require('../schemas/menu')
-let slugify = require('slugify')
-let { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseHandler')
-/* GET users listing. */
+var menuController = require('../controllers/menus');
+let { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseHandler');
+let { check_authentication, check_authorization } = require('../utils/check_auth');
+let constants = require('../utils/constants');
+
+/* GET menus listing. */
 router.get('/', async function (req, res, next) {
-  let allmenu = await menuSchema.find({})
-  let parents = allmenu.filter(m => !m.parent)
-  let result = []
-  for (const parent of parents) {
-    let QueryChildren = await menuSchema.find({
-      parent: parent._id
-    })
-    let children = [];
-    for (const child of QueryChildren) {
-      children.push({
-        text: child.text,
-        url: child.url
-      })
+    try {
+        let result = await menuController.GetAllMenus();
+        CreateSuccessResponse(res, 200, result);
+    } catch (error) {
+        CreateErrorResponse(res, 404, error.message);
     }
-    result.push({
-      text: parent.text,
-      url: parent.url,
-      children:children
-    })
-  }
-  CreateSuccessResponse(res, 200, result)
-});
-router.post('/', async function (req, res, next) {
-  try {
-    let objInput = {
-      text: req.body.text,
-      url: req.body.url || '/' + slugify(req.body.text, { lower: true }) // Cho phép chỉ định URL
-    };
-    // Thêm đuôi .html nếu chưa có
-    if (!objInput.url.endsWith('.html')) {
-      objInput.url += '.html';
-    }
-    if (req.body.parent) {
-      let parent = await menuSchema.findOne({ text: req.body.parent });
-      objInput.parent = parent._id;
-    }
-    let newMenu = new menuSchema(objInput);
-    await newMenu.save();
-    CreateSuccessResponse(res, 200, newMenu);
-  } catch (error) {
-    CreateErrorResponse(res, 404, error.message);
-  }
 });
 
+/* POST a new menu (Admin only) */
+router.post('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
+    try {
+        let newMenu = await menuController.CreateMenu(req.body);
+        CreateSuccessResponse(res, 200, newMenu);
+    } catch (error) {
+        CreateErrorResponse(res, 404, error.message);
+    }
+});
+
+/* PUT (update) a menu (Admin only) */
+router.put('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
+    try {
+        let updatedMenu = await menuController.UpdateMenu(req.params.id, req.body);
+        CreateSuccessResponse(res, 200, updatedMenu);
+    } catch (error) {
+        CreateErrorResponse(res, 404, error.message);
+    }
+});
+
+/* DELETE a menu (Admin only) */
+router.delete('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
+    try {
+        await menuController.DeleteMenu(req.params.id);
+        CreateSuccessResponse(res, 200, { message: "Menu deleted successfully" });
+    } catch (error) {
+        CreateErrorResponse(res, 404, error.message);
+    }
+});
 
 module.exports = router;

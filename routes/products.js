@@ -1,17 +1,20 @@
 var express = require('express');
 var router = express.Router();
-let productSchema = require('../schemas/product')
-let categorySchema = require('../schemas/category')
-let slugify = require('slugify')
-/* GET users listing. */
+let productSchema = require('../schemas/product');
+let categorySchema = require('../schemas/category');
+let slugify = require('slugify');
+let constants = require('../utils/constants');
+let { check_authentication, check_authorization } = require('../utils/check_auth');
+
+/* GET products listing. */
 router.get('/', async function (req, res, next) {
     let query = req.query;
     console.log(query);
     let objQuery = {};
     if (query.name) {
-        objQuery.name = new RegExp(query.name, 'i')
+        objQuery.name = new RegExp(query.name, 'i');
     } else {
-        objQuery.name = new RegExp("", 'i')
+        objQuery.name = new RegExp("", 'i');
     }
     objQuery.price = {};
     if (query.price) {
@@ -47,24 +50,28 @@ router.get('/:id', async function (req, res, next) {
         res.status(404).send({
             success: false,
             message: error.message
-        })
+        });
     }
 });
-router.post('/', async function (req, res, next) {
+
+// Only admin can create a product
+router.post('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
     try {
         let body = req.body;
-        let category = await categorySchema.findOne({ name: body.category })
+
+        // Tìm danh mục dựa trên tên
+        let category = await categorySchema.findOne({ name: body.category });
         if (category) {
             let newProduct = productSchema({
                 name: body.name,
                 price: body.price ? body.price : 1000,
                 quantity: body.quantity ? body.quantity : 10,
-                category: category._id,
+                category: category._id, // Gán ObjectId của danh mục
                 slug: slugify(body.name, {
                     lower: true
                 })
             });
-            await newProduct.save()
+            await newProduct.save();
             res.status(200).send({
                 success: true,
                 data: newProduct
@@ -72,34 +79,46 @@ router.post('/', async function (req, res, next) {
         } else {
             res.status(404).send({
                 success: false,
-                message: "khong tim thay category"
-            })
+                message: "Không tìm thấy danh mục"
+            });
         }
     } catch (error) {
         res.status(404).send({
             success: false,
             message: error.message
-        })
+        });
     }
 });
 
-router.put('/:id', async function (req, res, next) {
+// Only admin can update a product
+router.put('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
     try {
         let body = req.body;
-        let updatedObj = {}
+        let updatedObj = {};
+
         if (body.name) {
-            updatedObj.name = body.name
+            updatedObj.name = body.name;
         }
         if (body.quantity) {
-            updatedObj.quantity = body.quantity
+            updatedObj.quantity = body.quantity;
         }
         if (body.price) {
-            updatedObj.price = body.price
+            updatedObj.price = body.price;
         }
         if (body.category) {
-            updatedObj.category = body.category
+            // Tìm danh mục dựa trên tên
+            let category = await categorySchema.findOne({ name: body.category });
+            if (category) {
+                updatedObj.category = category._id; // Gán ObjectId của danh mục
+            } else {
+                return res.status(404).send({
+                    success: false,
+                    message: "Không tìm thấy danh mục"
+                });
+            }
         }
-        let updatedProduct = await productSchema.findByIdAndUpdate(req.params.id, updatedObj, { new: true })
+
+        let updatedProduct = await productSchema.findByIdAndUpdate(req.params.id, updatedObj, { new: true });
         res.status(200).send({
             success: true,
             data: updatedProduct
@@ -108,26 +127,26 @@ router.put('/:id', async function (req, res, next) {
         res.status(404).send({
             success: false,
             message: error.message
-        })
-    }
-});
-router.delete('/:id', async function (req, res, next) {
-    try {
-        let body = req.body;
-        let updatedProduct = await productSchema.findByIdAndUpdate(req.params.id, {
-            isDeleted: true
-        }, { new: true })
-        res.status(200).send({
-            success: true,
-            data: updatedProduct
         });
-    } catch (error) {
-        res.status(404).send({
-            success: false,
-            message: error.message
-        })
     }
 });
 
+// Only admin can delete a product
+router.delete('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
+    try {
+        let updatedProduct = await productSchema.findByIdAndUpdate(req.params.id, {
+            isDeleted: true
+        }, { new: true });
+        res.status(200).send({
+            success: true,
+            data: updatedProduct
+        });
+    } catch (error) {
+        res.status(404).send({
+            success: false,
+            message: error.message
+        });
+    }
+});
 
 module.exports = router;
