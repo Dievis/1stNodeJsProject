@@ -1,4 +1,6 @@
 let mongoose = require('mongoose');
+const reviewSchema = require('./review').schema;
+
 
 let productSchema = mongoose.Schema({
     name:{
@@ -16,6 +18,18 @@ let productSchema = mongoose.Schema({
     },description:{
         type:String,
         default:""
+    },reviews:[reviewSchema], // Array of review subdocuments
+    rating:{
+        type:Number,
+        default:0
+    },ratingCount:{
+        type:Number,
+        default:0
+    },discount:{
+        type:Number,
+        min:0,
+        max:100,
+        default:0
     },imgURL:{
         type:String,
         default:""
