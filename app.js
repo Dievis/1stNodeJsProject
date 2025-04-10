@@ -10,7 +10,7 @@ let cors = require('cors')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var wishlistRoutes = require('./routes/wishlist');
+var wishlistRoutes = require('./routes/wishlists');
 
 var app = express();
 
@@ -43,7 +43,7 @@ app.use('/products', require('./routes/products'));
 app.use('/categories', require('./routes/categories'));
 app.use('/favorites', require('./routes/favorites'));
 app.use('/reviews', require('./routes/reviews'));
-app.use('/api/wishlist', wishlistRoutes);
+app.use('/carts', require('./routes/carts'));
 
 
 // catch 404 and forward to error handler
