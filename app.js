@@ -10,7 +10,7 @@ let cors = require('cors')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var wishlistRoutes = require('./routes/wishlists');
+var wishlistRoutes = require('./routes/wishlist');
 
 var app = express();
 
