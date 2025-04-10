@@ -1,21 +1,21 @@
-const Wishlist = require('../schemas/wishlist');
+const express = require('express');
+const Wishlist = require('../schemas/wishlists');
+const router = express.Router();
 
 // Thêm sản phẩm vào wishlist
-exports.addToWishlist = async (req, res) => {
+router.post('/:userId', async (req, res) => {
   try {
     const { productId } = req.body;
-    const userId = req.params.userId;
-
-    let wishlist = await Wishlist.findOne({ user: userId });
+    const wishlist = await Wishlist.findOne({ user: req.params.userId });
 
     if (!wishlist) {
       // Tạo wishlist mới nếu chưa tồn tại
-      wishlist = new Wishlist({
-        user: userId,
+      const newWishlist = new Wishlist({
+        user: req.params.userId,
         products: [productId],
       });
-      await wishlist.save();
-      return res.status(201).json({ message: 'Wishlist created', wishlist });
+      await newWishlist.save();
+      return res.status(201).json({ message: 'Wishlist created', wishlist: newWishlist });
     }
 
     // Thêm sản phẩm vào wishlist hiện tại
@@ -28,13 +28,12 @@ exports.addToWishlist = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
-};
+});
 
-// Lấy danh sách sản phẩm yêu thích
-exports.getWishlist = async (req, res) => {
+// Lấy danh sách sản phẩm yêu thích của người dùng
+router.get('/:userId', async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const wishlist = await Wishlist.findOne({ user: userId }).populate('products');
+    const wishlist = await Wishlist.findOne({ user: req.params.userId }).populate('products');
 
     if (!wishlist) {
       return res.status(404).json({ message: 'Wishlist not found' });
@@ -44,22 +43,19 @@ exports.getWishlist = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
-};
+});
 
 // Xóa sản phẩm khỏi wishlist
-exports.removeFromWishlist = async (req, res) => {
+router.delete('/:userId/:productId', async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const productId = req.params.productId;
-
-    const wishlist = await Wishlist.findOne({ user: userId });
+    const wishlist = await Wishlist.findOne({ user: req.params.userId });
 
     if (!wishlist) {
       return res.status(404).json({ message: 'Wishlist not found' });
     }
 
     wishlist.products = wishlist.products.filter(
-      (id) => id.toString() !== productId
+      (productId) => productId.toString() !== req.params.productId
     );
     await wishlist.save();
 
@@ -67,4 +63,6 @@ exports.removeFromWishlist = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
-};
+});
+
+module.exports = router;
