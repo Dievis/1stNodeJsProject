@@ -1,10 +1,11 @@
 const Wishlist = require('../schemas/wishlist');
 const Product = require('../schemas/product');
 
-// Lấy danh sách wishlist của người dùng
+// Lấy wishlist của người dùng (dựa trên userId được gửi từ client)
 exports.getWishlist = async (req, res) => {
     try {
-        const wishlist = await Wishlist.findOne({ user: req.user._id }).populate('products');
+        const { userId } = req.query; // Lấy userId từ query string
+        const wishlist = await Wishlist.findOne({ user: userId }).populate('products');
         if (!wishlist) {
             return res.status(404).json({ message: 'Wishlist not found' });
         }
@@ -17,7 +18,7 @@ exports.getWishlist = async (req, res) => {
 // Thêm sản phẩm vào wishlist
 exports.addToWishlist = async (req, res) => {
     try {
-        const { productId } = req.body;
+        const { userId, productId } = req.body;
 
         // Kiểm tra sản phẩm có tồn tại không
         const product = await Product.findById(productId);
@@ -25,10 +26,10 @@ exports.addToWishlist = async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        let wishlist = await Wishlist.findOne({ user: req.user._id });
+        let wishlist = await Wishlist.findOne({ user: userId });
         if (!wishlist) {
             // Tạo wishlist mới nếu chưa tồn tại
-            wishlist = new Wishlist({ user: req.user._id, products: [productId] });
+            wishlist = new Wishlist({ user: userId, products: [productId] });
         } else {
             // Kiểm tra sản phẩm đã có trong wishlist chưa
             if (wishlist.products.includes(productId)) {
@@ -47,9 +48,9 @@ exports.addToWishlist = async (req, res) => {
 // Xóa sản phẩm khỏi wishlist
 exports.removeFromWishlist = async (req, res) => {
     try {
-        const { productId } = req.body;
+        const { userId, productId } = req.body;
 
-        const wishlist = await Wishlist.findOne({ user: req.user._id });
+        const wishlist = await Wishlist.findOne({ user: userId });
         if (!wishlist) {
             return res.status(404).json({ message: 'Wishlist not found' });
         }

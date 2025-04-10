@@ -1,6 +1,6 @@
-let mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-let wishlistSchema = mongoose.Schema({
+const wishlistSchema = mongoose.Schema({
     user: {
         type: mongoose.Types.ObjectId,
         ref: 'user', // Tham chiếu đến user
@@ -10,11 +10,7 @@ let wishlistSchema = mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: 'product', // Tham chiếu đến product
         required: true
-    }],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+    }]
 }, {
     timestamps: true // Tự động thêm createdAt và updatedAt
 });
