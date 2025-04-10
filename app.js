@@ -10,7 +10,7 @@ let cors = require('cors')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var wishlistRoutes = require('./routes/wishlistRoutes');
+var wishlistRoutes = require('./routes/wishlist');
 const Wishlist = require('./schemas/wishlist');
 const Product = require('./schemas/product');
 
@@ -45,7 +45,6 @@ app.use('/products', require('./routes/products'));
 app.use('/categories', require('./routes/categories'));
 app.use('/favorites', require('./routes/favorites'));
 app.use('/reviews', require('./routes/reviews'));
-app.use('/carts', require('./routes/carts'));
 
 // Lấy wishlist của người dùng
 app.get('/wishlist', async (req, res) => {
