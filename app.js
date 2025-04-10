@@ -17,7 +17,7 @@ app.use(cors({
   origin:'*'
 }))
 
-mongoose.connect("mongodb://127.0.0.1:27017/S6");
+mongoose.connect("mongodb://127.0.0.1:27017/S6"); //Change this to your mongodb connection string
 mongoose.connection.on('connected',()=>{
   console.log("connected");
 })
@@ -40,7 +40,8 @@ app.use('/menus', require('./routes/menus'));
 app.use('/roles', require('./routes/roles'));
 app.use('/products', require('./routes/products'));
 app.use('/categories', require('./routes/categories'));
-
+app.use('/favorites', require('./routes/favorites'));
+app.use('/reviews', require('./routes/reviews'));
 
 
 // catch 404 and forward to error handler
