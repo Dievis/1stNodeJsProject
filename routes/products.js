@@ -39,15 +39,18 @@ router.get('/', async function (req, res, next) {
     res.send(products);
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async function (req, res, next) {
     try {
-        const product = await productSchema.findById(req.params.id).populate('reviews');
-        if (!product) {
-                return res.status(404).json({ message: 'Không tìm thấy Product' });
-        }
-        res.json(product);
+        let product = await productSchema.findById(req.params.id);
+        res.send({
+            success: true,
+            data: product
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Lỗi server', error });
+        res.status(404).send({
+            success: false,
+            message: error.message
+        });
     }
 });
 
@@ -143,26 +146,6 @@ router.delete('/:id', check_authentication, check_authorization(constants.ADMIN_
             success: false,
             message: error.message
         });
-    }
-});
-
-// Add a review to a product
-router.post('/:id/reviews', async (req, res) => {
-    try {
-        const { user, rating, comment } = req.body;
-        const product = await productSchema.findById(req.params.id);
-
-        if (!product) {
-            return res.status(404).json({ message: 'Sản phẩm không tồn tại' });
-        }
-
-        const review = { user, rating, comment };
-        product.reviews.push(review);
-        await product.save();
-
-        res.status(201).json({ message: 'Đã thêm đánh giá', review });
-    } catch (error) {
-        res.status(500).json({ message: 'Lỗi server', error });
     }
 });
 
