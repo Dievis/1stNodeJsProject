@@ -44,7 +44,6 @@ app.use('/favorites', require('./routes/favorites'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/carts', require('./routes/carts'));
 
-
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -58,10 +57,6 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   CreateErrorResponse(res, err.status||500, err.message)
-});
-
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
 });
 
 module.exports = app;
