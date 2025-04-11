@@ -1,12 +1,30 @@
 var express = require('express');
 var router = express.Router();
-let categorySchema = require('../schemas/category')
-let productSchema = require('../schemas/product')
+var menuController = require('../controllers/menus');
+let productSchema = require('../schemas/product');
 
 /* GET home page. */
-router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Express' });
+router.get('/', async function (req, res, next) {
+    try {
+        let menus = await menuController.GetAllMenus();
+        console.log('Menus:', menus); // Log danh sách menu
+
+        let products = await productSchema.find({ isDeleted: false }).populate(
+            { path: 'category', select: 'name' }
+        );
+        console.log('Products:', products); // Log danh sách sản phẩm
+
+        res.render('index', {
+            title: 'Home Consumer Products',
+            menus: menus,
+            products: products
+        });
+    } catch (error) {
+        console.error('Error:', error.message); // Log lỗi
+        res.status(500).send('Internal Server Error');
+    }
 });
+
 router.get('/api/:category', async function (req, res, next) {
   let categorySlug = req.params.category;
   let category = await categorySchema.findOne({

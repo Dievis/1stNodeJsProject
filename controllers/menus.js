@@ -3,25 +3,26 @@ const slugify = require('slugify');
 
 module.exports = {
     GetAllMenus: async function () {
-        let allmenu = await menuSchema.find({});
-        let parents = allmenu.filter(m => !m.parent);
-        let result = [];
-        for (const parent of parents) {
-            let QueryChildren = await menuSchema.find({ parent: parent._id });
-            let children = [];
-            for (const child of QueryChildren) {
-                children.push({
-                    text: child.text,
-                    url: child.url
+        try {
+            let allmenu = await menuSchema.find({});
+            let parents = allmenu.filter(m => !m.parent);
+            let result = [];
+            for (const parent of parents) {
+                let children = allmenu.filter(m => String(m.parent) === String(parent._id));
+                result.push({
+                    text: parent.text,
+                    url: parent.url,
+                    children: children.map(child => ({
+                        text: child.text,
+                        url: child.url
+                    }))
                 });
             }
-            result.push({
-                text: parent.text,
-                url: parent.url,
-                children: children
-            });
+            return result;
+        } catch (error) {
+            console.error('Error fetching menus:', error.message);
+            throw error;
         }
-        return result;
     },
     CreateMenu: async function (body) {
         let objInput = {
