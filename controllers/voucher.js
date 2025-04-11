@@ -1,5 +1,15 @@
 const Voucher = require('../schemas/voucher');
 
+// Lấy danh sách tất cả các voucher
+const getAllVouchers = async (req, res) => {
+    try {
+        const vouchers = await Voucher.find({ isDelete: false }); // Lấy các voucher chưa bị xóa
+        res.status(200).json(vouchers);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // Thêm voucher
 const addVoucher = async (req, res) => {
     try {
@@ -16,11 +26,15 @@ const addVoucher = async (req, res) => {
 const deleteVoucher = async (req, res) => {
     try {
         const { id } = req.params;
-        const deletedVoucher = await Voucher.findByIdAndDelete(id);
+        const deletedVoucher = await Voucher.findByIdAndUpdate(
+            id,
+            { isDelete: true },
+            { new: true }
+        );
         if (!deletedVoucher) {
             return res.status(404).json({ message: 'Voucher not found' });
         }
-        res.status(200).json({ message: 'Voucher deleted successfully' });
+        res.status(200).json({ message: 'Voucher soft deleted successfully', voucher: deletedVoucher });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -45,4 +59,4 @@ const updateVoucher = async (req, res) => {
     }
 };
 
-module.exports = { addVoucher, deleteVoucher, updateVoucher };
+module.exports = { getAllVouchers, addVoucher, deleteVoucher, updateVoucher };
