@@ -3,26 +3,26 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var mongoose = require('mongoose');
-let { CreateSuccessResponse, CreateErrorResponse } = require('./utils/responseHandler');
-let constants = require("./utils/constants");
-let cors = require('cors');
+var mongoose = require('mongoose')
+let { CreateSuccessResponse, CreateErrorResponse } = require('./utils/responseHandler')
+let constants = require("./utils/constants")
+let cors = require('cors')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const Product = require('./schemas/product');
-const voucherRouter = require('./routes/voucher'); // Import voucher routes
 
 var app = express();
 
 app.use(cors({
-  origin: '*'
-}));
+  origin:'*'
+}))
 
-mongoose.connect("mongodb://127.0.0.1:27017/S6"); // Change this to your MongoDB connection string
-mongoose.connection.on('connected', () => {
+mongoose.connect("mongodb://127.0.0.1:27017/S6"); //Change this to your mongodb connection string
+mongoose.connection.on('connected',()=>{
   console.log("connected");
-});
+})
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -44,21 +44,21 @@ app.use('/categories', require('./routes/categories'));
 app.use('/favorites', require('./routes/favorites'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/carts', require('./routes/carts'));
-app.use('/vouchers', voucherRouter); // Add voucher routes
+
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
+app.use(function(req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
-  CreateErrorResponse(res, err.status || 500, err.message);
+  CreateErrorResponse(res, err.status||500, err.message)
 });
 
 app.listen(3000, () => {
