@@ -1,13 +1,17 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\routes\auth.js
 var express = require('express');
 var router = express.Router();
-var userController = require('../controllers/users')
+var userController = require('../controllers/users');
+var menuController = require('../controllers/menus');
+let userSchema = require('../schemas/user'); 
+let bcrypt = require('bcrypt');
 let { CreateSuccessResponse, CreateCookieResponse } = require('../utils/responseHandler')
 let jwt = require('jsonwebtoken')
 let constants = require('../utils/constants')
 let { check_authentication } = require('../utils/check_auth')
 let crypto = require('crypto')
 let mailer = require('../utils/mailer')
-let { SignUpValidator, LoginValidator, validate } = require('../utils/validator')
+let { SignUpValidator, LoginValidator, ForgotPasswordValidator, validate } = require('../utils/validator')
 let multer = require('multer')
 let path = require('path')
 let FormData = require('form-data')
@@ -15,32 +19,140 @@ let axios = require('axios')
 let fs = require('fs')
 
 
+// ======== Thêm các route render giao diện PUG ========
+router.get('/login', async function (req, res) {
+    let menus = await menuController.GetAllMenus();
+    console.log('Menus:', menus); 
+    
+    res.render('shared/login', {
+        title: 'Login',
+        menus: menus,
+    });
 
+});
+router.get('/signup', async function (req, res) {
+    let menus = await menuController.GetAllMenus();
+    console.log('Menus:', menus); 
+    
+    res.render('shared/signup', {
+        title: 'Signup',
+        menus: menus,
+    });
+});
+router.get('/changepassword', async function (req, res) {
+    let menus = await menuController.GetAllMenus();
+    console.log('Menus:', menus); 
+    
+    res.render('user/changepassword', {
+        title: 'Change Password',
+        menus: menus,
+    });
+});
+router.get('/forgotpassword', async function (req, res) {
+    let menus = await menuController.GetAllMenus();
+    console.log('Menus:', menus); 
+    
+    res.render('shared/forgotpassword', {
+        title: 'Forgot Password',
+        menus: menus,
+    });
+});
+router.get('/resetpassword/:token', async function (req, res) {
+    res.render('resetPassword', { token: req.params.token });
+});
+
+// ======== API ========
 router.post('/signup', SignUpValidator, validate, async function (req, res, next) {
     try {
         let newUser = await userController.CreateAnUser(
-            req.body.username, req.body.password, req.body.email, 'user'
-        )
-        CreateSuccessResponse(res, 200, newUser)
+            req.body.username,
+            req.body.password, 
+            req.body.email,
+            'user'
+        );
+
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return res.status(201).json({
+                success: true,
+                message: 'Đăng ký thành công',
+                user: {
+                    id: newUser._id,
+                    username: newUser.username,
+                    email: newUser.email
+                }
+            });
+        } else {
+            return res.redirect('/auth/login');
+        }
     } catch (error) {
-        next(error)
+        console.error('Signup error:', error.message);
+
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
+            });
+        } else {
+            return res.render('shared/signup', {
+                title: 'Signup',
+                error: 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
+            });
+        }
     }
 });
-router.post('/login', LoginValidator, validate, async function (req, res, next) {
+router.post('/login',  LoginValidator, validate, async function (req, res, next) {
     try {
-        let user_id = await userController.CheckLogin(
-            req.body.username, req.body.password
-        )
-        let exp = (new Date(Date.now() + 60 * 60 * 1000)).getTime();
-        let token = jwt.sign({
-            id: user_id,
-            exp: exp
-        }, constants.SECRET_KEY)
-        CreateCookieResponse(res, 'token', token, exp);
-        CreateSuccessResponse(res, 200, token)
+        const user_id = await userController.CheckLogin(req.body.username, req.body.password);
+        const exp = (new Date(Date.now() + 60 * 60 * 1000)).getTime(); // Token hết hạn sau 1 giờ
+        const token = jwt.sign({ id: user_id, exp: exp }, constants.SECRET_KEY);
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            signed: true, 
+            maxAge: 60 * 60 * 1000 // 1 giờ
+        });
+
+        const user = await userSchema.findById(user_id).populate('role');
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return res.status(200).json({
+                success: true,
+                message: 'Đăng nhập thành công',
+                token: token,
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role.name
+                }
+            });
+        } else {
+            // Xử lý giao diện web
+            if (user.role && user.role.name === 'admin') {
+                console.log('Admin login successful:', user);
+                return res.redirect('/admin/dashboard');
+            } else {
+                return res.redirect('/');
+            }
+        }
     } catch (error) {
-        next(error)
+        console.error('Login error:', error.message);
+
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return res.status(401).json({
+                success: false,
+                message: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+            });
+        } else {
+            return res.render('shared/login', {
+                title: 'Login',
+                error: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+            });
+        }
     }
+});
+router.post('/logout', function (req, res, next) {
+    CreateCookieResponse(res, 'token', "", Date.now()); // Xóa token
+    return res.redirect('/auth/login');
 });
 router.get('/logout', function (req, res, next) {
     CreateCookieResponse(res, 'token', "", Date.now());
@@ -61,34 +173,58 @@ router.post('/change_password', check_authentication,
         }
     })
 
-router.post('/forgotpassword', async function (req, res, next) {
+router.post('/forgotpassword', ForgotPasswordValidator, validate, async function (req, res, next) {
     try {
         let email = req.body.email;
         let user = await userController.GetUserByEmail(email);
-        user.resetPasswordToken = crypto.randomBytes(32).toString('hex');
-        user.resetPasswordTokenExp = (new Date(Date.now() + 10 * 60 * 1000));
+
+        if (!user) {
+            return CreateErrorResponse(res, 404, "Email không tồn tại trong hệ thống");
+        }
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordTokenExp = new Date(Date.now() + 10 * 60 * 1000); // Token hết hạn sau 10 phút
         await user.save();
-        let url = 'http://localhost:3000/auth/resetpassword/' + user.resetPasswordToken;
-        await mailer.sendMailForgotPassword(user.email, url);
-        CreateSuccessResponse(res, 200, url)
+
+        const resetUrl = `http://localhost:3000/auth/resetpassword/${user.resetPasswordToken}`;        
+        
+        await mailer.sendMailForgotPassword(user.email, resetUrl);
+        
+        CreateSuccessResponse(res, 200, { message: "Email đặt lại mật khẩu đã được gửi.", resetUrl });
     } catch (error) {
         next(error)
     }
 })
+
 router.post('/resetpassword/:token', async function (req, res, next) {
     try {
         let token = req.params.token;
         let password = req.body.password;
-        let user = await userController.GetUserByToken(token);
-        user.password = password;
+
+        let user = await userSchema.findOne({
+            resetPasswordToken: token,
+            resetPasswordTokenExp: { $gt: Date.now() } 
+        });
+
+        if (!user) {
+            return CreateErrorResponse(res, 400, "Token không hợp lệ hoặc đã hết hạn");
+        }
+
+        // Cập nhật mật khẩu mới
+        user.password = bcrypt.hashSync(password, 10);
         user.resetPasswordToken = null;
         user.resetPasswordTokenExp = null;
         await user.save();
-        CreateSuccessResponse(res, 200, user)
+
+        CreateSuccessResponse(res, 200, { message: "Đặt lại mật khẩu thành công" });
+
     } catch (error) {
-        next(error)
+        console.error('Reset password error:', error.message);
+        next(error);
     }
-})
+});
+
 //storage
 let avatarDir = path.join(__dirname, "../avatars");
 let authURL = "http://localhost:3000/auth/avatars/";

@@ -1,0 +1,65 @@
+extends layout
+
+block content
+  section.hero.bg-primary.text-white.py-5
+    .container.text-center
+      h1 Welcome to Home Consumer Products!
+      p.lead Find the best products for your home at unbeatable prices.
+
+  section.products.py-5
+    .container
+      h2.text-center.mb-4 Featured Products
+      if products.length > 0
+        .row.row-cols-1.row-cols-md-3.g-4
+          each product in products
+            .col
+              .card.h-100.shadow-sm
+                .product-image
+                  img.card-img-top(src=product.imgURL, alt=product.name)
+                .card-body
+                  h5.card-title #{product.name}
+                  p.card-text.text-muted Category: #{product.category ? product.category.name : 'Uncategorized'}
+                  p.card-text.text-success.font-weight-bold $#{product.price}
+                .card-footer.bg-transparent.border-0.text-center
+                  a.btn.btn-primary(href=`/products/${product._id}`) View Details
+                  button.btn.favorite-btn.bg-warning.ms-2(type='button', data-id=product._id, title='Add to favorites')
+                    if userFavorites && userFavorites.includes(product._id.toString())
+                      i.fas.fa-heart.text-danger 
+                    else
+                      i.far.fa-heart 
+      else
+        p.text-center.text-muted No products available.
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const favButtons = document.querySelectorAll('.favorite-btn');
+      favButtons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const icon = btn.querySelector('i');
+          const productId = btn.getAttribute('data-id');
+          const isFavorite = icon.classList.contains('text-danger'); 
+
+          try {
+            if (isFavorite) {
+              await fetch(`/favorites/${productId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+              });
+            } else {
+              await fetch(`/favorites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId })
+              });
+            }
+
+            icon.classList.toggle('text-danger'); 
+            icon.classList.toggle('fas'); 
+            icon.classList.toggle('far'); 
+          } catch (error) {
+            console.error('Error updating favorites:', error);
+          }
+        });
+      });
+    });

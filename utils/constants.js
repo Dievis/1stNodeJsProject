@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\utils\constants.js
+
 module.exports = {
     SECRET_KEY: "NNPTUDS6",
     SECRET_KEY_COOKIE: "NNPTUDS6",

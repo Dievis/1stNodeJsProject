@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\routes\menus.js
+
 var express = require('express');
 var router = express.Router();
 var menuController = require('../controllers/menus');
@@ -5,8 +7,7 @@ let { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseH
 let { check_authentication, check_authorization } = require('../utils/check_auth');
 let constants = require('../utils/constants');
 
-/* GET menus listing. */
-router.get('/', async function (req, res, next) {
+router.get('/', check_authentication, check_authorization, async function (req, res, next) {
     try {
         let result = await menuController.GetAllMenus();
         CreateSuccessResponse(res, 200, result);
@@ -15,7 +16,6 @@ router.get('/', async function (req, res, next) {
     }
 });
 
-/* POST a new menu (Admin only) */
 router.post('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
     try {
         let newMenu = await menuController.CreateMenu(req.body);
@@ -25,7 +25,6 @@ router.post('/', check_authentication, check_authorization(constants.ADMIN_PERMI
     }
 });
 
-/* PUT (update) a menu (Admin only) */
 router.put('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
     try {
         let updatedMenu = await menuController.UpdateMenu(req.params.id, req.body);
@@ -35,7 +34,6 @@ router.put('/:id', check_authentication, check_authorization(constants.ADMIN_PER
     }
 });
 
-/* DELETE a menu (Admin only) */
 router.delete('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
     try {
         await menuController.DeleteMenu(req.params.id);

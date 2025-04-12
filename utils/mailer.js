@@ -1,11 +1,13 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\utils\mailer.js
+
 const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
     host: "sandbox.smtp.mailtrap.io",
-    port: 25,
+    port: 587,
     secure: false, 
     auth: {
-      user: "b7dfae99eef9f1",
-      pass: "16aa9d245b26fd",
+      user: "e90d74ac5af6de",
+      pass: "87a02e3eb1bce9",
     },
   });
 module.exports = {

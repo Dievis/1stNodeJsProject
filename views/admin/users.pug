@@ -1,0 +1,205 @@
+extends ../admin/layout
+
+block content
+  .container
+    h1.text-center.mb-4 Quản lý người dùng
+    .d-flex.justify-content-between.mb-3
+      a.btn.btn-primary(href='#', data-bs-toggle="modal", data-bs-target="#addUserModal")
+        i.fas.fa-plus-circle.me-2
+        | Thêm người dùng mới
+
+    if users && users.length > 0
+      .table-responsive
+        table.table.table-striped.table-hover
+          thead
+            tr
+              th Tên người dùng
+              th Email
+              th Quyền
+              th Hành động
+          tbody
+            each user in users
+              tr(data-id=user._id)
+                td= user.username
+                td= user.email
+                td= user.role
+                td
+                  a.btn.btn-sm.btn-warning.me-2.edit-user(href='#', data-bs-toggle="modal", data-bs-target="#editUserModal")
+                    i.fas.fa-edit.me-1
+                    | Sửa
+                  button.btn.btn-sm.btn-danger.delete-user
+                    i.fas.fa-trash.me-1
+                    | Xóa
+    else
+      p.text-center.text-muted Không có người dùng nào.
+
+  // Modal for adding user
+  .modal#addUserModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Thêm người dùng mới
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#addUserForm
+            .form-group
+              label(for="username") Tên người dùng
+              input.form-control(type="text", name="username", required)
+            .form-group
+              label(for="email") Email
+              input.form-control(type="email", name="email", required)
+            .form-group
+              label(for="password") Mật khẩu
+              input.form-control(type="password", name="password", required)
+            .form-group
+              label(for="role") Quyền
+              select.form-control(name="role", required)
+                option(value="admin") Admin
+                option(value="user") User
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+          button.btn.btn-primary(type="submit") Thêm người dùng
+
+  // Modal for editing user
+  .modal#editUserModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Sửa người dùng
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#editUserForm
+            input(type="hidden", name="id")
+            .form-group
+              label(for="username") Tên người dùng
+              input.form-control(type="text", name="username", required)
+            .form-group
+              label(for="email") Email
+              input.form-control(type="email", name="email", required)
+            .form-group
+              label(for="role") Quyền
+              select.form-control(name="role", required)
+                option(value="admin") Admin
+                option(value="user") User
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+          button.btn.btn-primary(type="submit") Lưu thay đổi
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Xóa người dùng
+      document.querySelectorAll('.delete-user').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const row = e.target.closest('tr');
+          const userId = row.getAttribute('data-id');
+          if (confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
+            try {
+              const response = await fetch(`/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              const result = await response.json();
+              if (result.success) {
+                alert('Xóa người dùng thành công!');
+                row.remove();
+              } else {
+                alert('Xóa người dùng thất bại: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error deleting user:', error);
+              alert('Đã xảy ra lỗi khi xóa người dùng.');
+            }
+          }
+        });
+      });
+
+      // Sửa người dùng
+      document.querySelectorAll('.edit-user').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const row = e.target.closest('tr');
+          const userId = row.getAttribute('data-id');
+          const username = row.children[0].innerText;
+          const email = row.children[1].innerText;
+          const role = row.children[2].innerText;
+
+          // Điền thông tin vào modal
+          const form = document.querySelector('#editUserForm');
+          form.id.value = userId;
+          form.username.value = username;
+          form.email.value = email;
+          form.role.value = role;
+
+          // Hiển thị modal
+          $('#editUserModal').modal('show');
+        });
+      });
+
+      // Gửi yêu cầu thêm người dùng
+      document.querySelector('#addUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const body = {
+          username: form.username.value,
+          email: form.email.value,
+          password: form.password.value,
+          role: form.role.value
+        };
+
+        try {
+          const response = await fetch('/admin/users', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Thêm người dùng thành công!');
+            location.reload(); // Tải lại trang
+          } else {
+            alert('Thêm người dùng thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error adding user:', error);
+          alert('Đã xảy ra lỗi khi thêm người dùng.');
+        }
+      });
+
+      // Gửi yêu cầu cập nhật người dùng
+      document.querySelector('#editUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const userId = form.id.value;
+        const body = {
+          username: form.username.value,
+          email: form.email.value,
+          role: form.role.value
+        };
+
+        try {
+          const response = await fetch(`/admin/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Cập nhật người dùng thành công!');
+            location.reload(); // Tải lại trang
+          } else {
+            alert('Cập nhật người dùng thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error updating user:', error);
+          alert('Đã xảy ra lỗi khi cập nhật người dùng.');
+        }
+      });
+    });

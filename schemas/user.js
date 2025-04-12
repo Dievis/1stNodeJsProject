@@ -3,8 +3,8 @@ let bcrypt = require('bcrypt')
 let userSchema = new mongoose.Schema({
     username: {
         type: String,
-        unique: [true, "username da ton tai"],
-        required: [true, "username la truong bat buoc"],
+        unique: [true, "username đã tồn tại"],
+        required: [true, "username là trường bắt buộc"],
     },
     password: {
         type: String,
@@ -50,14 +50,3 @@ userSchema.pre('save', function (next) {
 })
 
 module.exports = mongoose.model('user', userSchema)
-/*
-username: string, unique, required
-password: string,required
-email: string, required, unique
-fullName:string, default: ""
-avatarUrl:string, default: ""
-status: boolean, default: false
-role: Role,
-loginCount: int, default:0, min=0
-timestamp
-*/

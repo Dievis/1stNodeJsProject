@@ -1,0 +1,58 @@
+div.container(style='max-width: 960px;')
+  nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.py-1.rounded-3.px-3
+    .container-fluid
+      // Logo
+      a.navbar-brand(href='/') MyApp
+
+    // Nút toggle cho navbar trên màn hình nhỏ
+    button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#navbarNav', aria-controls='navbarNav', aria-expanded='false', aria-label='Toggle navigation')
+      span.navbar-toggler-icon
+  
+    .collapse.navbar-collapse.mt-4
+
+    // Nội dung navbar
+    .collapse.navbar-collapse#navbarNav
+      // Menu chính
+      ul.navbar-nav.me-auto.mb-2.mb-lg-0
+        if menus && menus.length > 0
+          each menu in menus
+            // Ẩn 'products' và 'categories' nếu không phải admin
+            if !['products', 'categories'].includes(menu.text.toLowerCase()) || (user && user.role === 'admin')
+              li.nav-item
+                a.nav-link(href=menu.url)
+                  if menu.text.toLowerCase() === 'home'
+                    i.fas.fa-home
+                  else
+                    = menu.text
+        else
+          li.nav-item
+            a.nav-link(href='#') No menus available
+
+      // Menu bên phải
+      ul.navbar-nav
+        // Nút yêu thích (chỉ icon trái tim)
+        li.nav-item
+          a.btn.btn-danger.ms-2(href='/favorites', title='Favorites')
+            i.fas.fa-heart
+
+        // Nút giỏ hàng (chỉ icon giỏ hàng)
+        li.nav-item
+          a.btn.btn-warning.ms-2(href='/carts', title='Cart')
+            i.fas.fa-shopping-cart
+
+        if user
+          // Hiển thị thông tin người dùng và nút Logout
+          li.nav-item.dropdown
+            a.nav-link.dropdown-toggle(href='#', id='userDropdown', role='button', data-bs-toggle='dropdown', aria-expanded='false')
+              i.fas.fa-user-circle.me-1
+              | #{user.username}
+            ul.dropdown-menu.dropdown-menu-end(aria-labelledby='userDropdown')
+              li
+                a.dropdown-item(href='/profile') Profile
+              li
+                form(action='/auth/logout', method='POST')
+                  button.dropdown-item(type='submit') Logout
+        else
+          // Nút Login
+          li.nav-item
+            a.btn.btn-primary.ms-2(href='/auth/login') Login
