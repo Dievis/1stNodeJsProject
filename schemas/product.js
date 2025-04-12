@@ -18,7 +18,7 @@ let productSchema = mongoose.Schema({
     },description:{
         type:String,
         default:""
-    },reviews:[reviewSchema], 
+    },reviews:[reviewSchema], // Array of review subdocuments
     rating:{
         type:Number,
         default:0
@@ -47,3 +47,4 @@ let productSchema = mongoose.Schema({
     timestamps:true
 })
 module.exports = mongoose.model('product',productSchema)
+// Tao 1 schema cho obj category gồm name,description, timestamp
