@@ -1,66 +1,50 @@
 let mongoose = require('mongoose');
-let Product = require('./product'); // Import product schema
-let User = require('./user'); // Import user schema
+const reviewSchema = require('./review').schema;
 
-let cartSchema = mongoose.Schema({
-    productId: {
-        type: mongoose.Types.ObjectId,
-        ref: 'product',
-        required: true
-    },
-    userId: {
-        type: mongoose.Types.ObjectId,
-        ref: 'user',
-        required: true
-    },
-    nameProduct: { // Tên sản phẩm từ product.js
-        type: String,
-        required: true
-    },
-    priceProduct: { // Giá sản phẩm từ product.js
-        type: Number,
-        required: true,
-        min: 0
-    },
-    quantity: { // Số lượng sản phẩm trong giỏ hàng
-        type: Number,
-        required: true,
-        min: 1,
-        default: 1
-    },
-    totalPrice: { // Tổng giá tiền (priceProduct * quantity)
-        type: Number,
-        required: true,
-        min: 0
+
+let productSchema = mongoose.Schema({
+    name:{
+        type:String,
+        required:true,
+        unique:true,
+    },quantity:{
+        type:Number,
+        min:0,
+        required:true
+    },price:{
+        type:Number,
+        min:0,
+        required:true
+    },description:{
+        type:String,
+        default:""
+    },reviews:[reviewSchema], // Array of review subdocuments
+    rating:{
+        type:Number,
+        default:0
+    },ratingCount:{
+        type:Number,
+        default:0
+    },discount:{
+        type:Number,
+        min:0,
+        max:100,
+        default:0
+    },imgURL:{
+        type:String,
+        default:""
+    },category:{
+        type:mongoose.Types.ObjectId,
+        ref:'category',
+        required:true
     }
-}, {
-    timestamps: true
-});
-
-// Middleware to populate nameProduct and priceProduct
-cartSchema.pre('save', async function (next) {
-    try {
-        // Lấy thông tin sản phẩm từ productId
-        const product = await Product.findById(this.productId);
-        if (!product) {
-            throw new Error('Product not found');
-        }
-        this.nameProduct = product.name;
-        this.priceProduct = product.price;
-
-        // Tính tổng giá tiền
-        this.totalPrice = this.priceProduct * this.quantity;
-
-        // Kiểm tra userId có tồn tại không
-        const user = await User.findById(this.userId);
-        if (!user) {
-            throw new Error('User not found');
-        }
-
-        next();
-    } catch (error) {
-        next(error);
-    }
-});
-
-module.exports = mongoose.model('cart', cartSchema);
+    ,isDeleted:{
+        type:Boolean,
+        default:false
+    },
+    slug:String
+},{
+    timestamps:true
+})
+module.exports = mongoose.model('product',productSchema)
+// Tao 1 schema cho obj category gồm name,description, timestamp
