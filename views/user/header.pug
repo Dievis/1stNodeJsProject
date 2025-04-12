@@ -1,0 +1,44 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\shared\header.pug
+nav.navbar.navbar-expand-lg.navbar-dark.bg-primary
+  .container-fluid
+    // Logo
+    a.navbar-brand(href='/') MyApp
+
+    // Nút toggle cho navbar trên màn hình nhỏ
+    button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#navbarNav', aria-controls='navbarNav', aria-expanded='false', aria-label='Toggle navigation')
+      span.navbar-toggler-icon
+
+    // Nội dung navbar
+    .collapse.navbar-collapse#navbarNav
+      // Menu chính
+      ul.navbar-nav.me-auto.mb-2.mb-lg-0
+        if menus && menus.length > 0
+          each menu in menus
+            li.nav-item
+              a.nav-link(href=menu.url)= menu.text
+        else
+          li.nav-item
+            a.nav-link(href='#') No menus available
+
+      // Menu bên phải
+      ul.navbar-nav
+        li.nav-item
+          a.btn.btn-warning.ms-2(href='/carts') Cart
+
+        if user
+          // Hiển thị thông tin người dùng và nút Logout
+          li.nav-item.dropdown
+            a.nav-link.dropdown-toggle(href='#', id='userDropdown', role='button', data-bs-toggle='dropdown', aria-expanded='false')
+              i.fas.fa-user-circle.me-1
+              | #{user.username}
+            ul.dropdown-menu.dropdown-menu-end(aria-labelledby='userDropdown')
+              li
+                a.dropdown-item(href='/profile') Profile
+              li
+                form(action='/auth/logout', method='POST')
+                  button.dropdown-item(type='submit') Logout
+        else
+          // Nút Login
+          li.nav-item
+            a.btn.btn-primary.ms-2(href='/auth/login') Login
+

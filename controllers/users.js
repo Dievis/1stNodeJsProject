@@ -7,8 +7,14 @@ module.exports = {
     return await userSchema.find({}).populate('role');
   },
   GetUserByID: async function (id) {
-    return await userSchema.findById(id).populate('role');
-  },
+    try {
+        const user = await userSchema.findById(id).populate('role'); // Sử dụng userSchema thay vì User
+        return user;
+    } catch (error) {
+        console.error('Error in GetUserByID:', error.message);
+        throw error;
+    }
+},
   GetUserByEmail: async function (email) {
     return await userSchema.findOne({ email: email }).populate('role');
   },

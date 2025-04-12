@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\routes\auth.pug
+
 var userController = require('../controllers/users');
 let jwt = require('jsonwebtoken');
 let constants = require('../utils/constants');
@@ -6,35 +8,23 @@ const RoleModel = require('../schemas/role'); // Đảm bảo đường dẫn đ
 module.exports = {
     check_authentication: async function (req, res, next) {
         try {
-            let token;
-
-            // Lấy token từ header hoặc cookie
-            if (req.headers && req.headers.authorization) {
-                let authorizedToken = req.headers.authorization;
-                if (authorizedToken.startsWith("Bearer ")) {
-                    token = authorizedToken.split(" ")[1]; // Lấy phần sau "Bearer "
-                }
-            } else if (req.signedCookies && req.signedCookies.token) {
-                token = req.signedCookies.token; // Lấy token từ cookie
-            }
-
+            const token = req.signedCookies.token;
             if (!token) {
-                return res.redirect('/auth/login'); // Chuyển hướng đến trang login nếu chưa đăng nhập
+                return res.redirect('/auth/login');
             }
 
-            // Giải mã token
-            let result = jwt.verify(token, constants.SECRET_KEY);
-
-            // Lấy thông tin người dùng từ cơ sở dữ liệu
-            let user = await userController.GetUserByID(result.id);
+            const decoded = jwt.verify(token, constants.SECRET_KEY);
+            const user = await userController.GetUserByID(decoded.id);
             if (!user) {
-                return res.redirect('/auth/login'); // Chuyển hướng nếu người dùng không tồn tại
+                return res.redirect('/auth/login');
             }
 
-            req.user = user; // Gắn thông tin người dùng vào request
+            req.user = user;
+            res.locals.user = user;
             next();
         } catch (error) {
-            return res.redirect('/auth/login'); // Chuyển hướng nếu token không hợp lệ
+            console.error('Authentication error:', error.message);
+            return res.redirect('/auth/login');
         }
     },
 

@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\utils\responseHandler.js
+
 module.exports = {
     CreateSuccessResponse: function (res, status, data) {
         res.status(status).send({
@@ -10,12 +12,11 @@ module.exports = {
             message: message
         });
     },
-    CreateCookieResponse: function (res,key,value,exp) {
+    CreateCookieResponse: function (res, key, value, exp) {
         res.cookie(key, value, {
-            httpOnly: true,
-            expires: new Date(exp),
-            signed: true
+            // httpOnly: true,
+            signed: true,
+            expires: new Date(exp) // Thời gian hết hạn
         });
     }
-
 }
