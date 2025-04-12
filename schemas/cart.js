@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cartItemSchema = mongoose.Schema({
     product: {
         type: mongoose.Types.ObjectId,
-        ref: 'product', // Tham chiếu đến schema product
+        ref: 'product', 
         required: true
     },
     quantity: {
@@ -13,35 +13,39 @@ const cartItemSchema = mongoose.Schema({
     },
     price: {
         type: Number,
-        required: true // Lưu giá sản phẩm tại thời điểm thêm vào giỏ hàng
+        required: true 
     },
     discount: {
         type: Number,
         min: 0,
         max: 100,
-        default: 0 // Lưu giảm giá áp dụng cho sản phẩm
+        default: 0 
+    },
+    isChoosed: {
+        type: Boolean,
+        default: true 
     }
 }, {
-    timestamps: true // Tự động thêm createdAt và updatedAt
+    timestamps: true 
 });
 
 const cartSchema = mongoose.Schema({
     user: {
         type: mongoose.Types.ObjectId,
-        ref: 'user', // Tham chiếu đến schema user
+        ref: 'user', 
         required: true
     },
-    items: [cartItemSchema], // Mảng các sản phẩm trong giỏ hàng
+    items: [cartItemSchema], 
     totalPrice: {
         type: Number,
-        default: 0 // Tổng giá trị của giỏ hàng
+        default: 0 
     },
     isCheckedOut: {
         type: Boolean,
-        default: false // Trạng thái giỏ hàng (đã thanh toán hay chưa)
-    }
+        default: false 
+    }       
 }, {
-    timestamps: true // Tự động thêm createdAt và updatedAt
+    timestamps: true 
 });
 
 module.exports = mongoose.model('cart', cartSchema);
