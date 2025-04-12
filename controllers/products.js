@@ -1,7 +1,7 @@
 const productSchema = require('../schemas/product');
 const categorySchema = require('../schemas/category');
 const slugify = require('slugify');
-const FavoriteModel = require('../schemas/favorite'); 
+
 
 
 // Lấy danh sách sản phẩm
