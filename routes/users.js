@@ -9,16 +9,20 @@ const constants = require('../utils/constants');
 
 /* GET users listing. */
 
-router.get('/',check_authentication,check_authorization(constants.MOD_PERMISSION), async function (req, res, next) {
-  console.log(req.headers.authorization);
-  let users = await userController.GetAllUser();
-  CreateSuccessResponse(res, 200, users)
+router.get('/', check_authentication, check_authorization(constants.MOD_PERMISSION), async function (req, res, next) {
+  try {
+    let users = await userController.GetAllUser(); // Lấy danh sách người dùng từ controller
+    res.render('admin/users', {
+      title: 'Quản lý người dùng',
+      users: users, // Truyền danh sách người dùng vào giao diện
+      user: res.locals.user // Thông tin người dùng hiện tại
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error.message);
+    res.status(500).send({ success: false, message: 'Lỗi khi lấy danh sách người dùng.' });
+  }
+});
 
-  res.render('admin/users', {
-    title: 'Users',
-    user: res.locals.user
-});
-});
 router.post('/', async function (req, res, next) {
   try {
     let body = req.body;
