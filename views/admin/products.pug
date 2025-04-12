@@ -5,7 +5,7 @@ block content
   .container
     h1.text-center.mb-4 Quản lý sản phẩm
     .d-flex.justify-content-between.mb-3
-      a.btn.btn-primary(href='/admin/products/create')
+      a.btn.btn-primary(href='#', data-toggle="modal", data-target="#addProductModal")
         i.fas.fa-plus-circle.me-2
         | Thêm sản phẩm mới
 
@@ -22,18 +22,73 @@ block content
                 th Hành động
           tbody
             each product in products
-              tr
+              tr(data-id=product._id)
                 td= product.name
                 td $#{product.price}
                 td= product.quantity
                 td= product.category ? product.category.name : 'Không có danh mục'
                 if user && user.role !== 'user'
                   td
-                    a.btn.btn-sm.btn-warning.me-2(href=`/products/${product._id}/edit`)
+                    a.btn.btn-sm.btn-warning.me-2.edit-product(href='#', data-toggle="modal", data-target="#editProductModal")
                       i.fas.fa-edit.me-1
                       | Sửa
-                    a.btn.btn-sm.btn-danger(href=`/products/${product._id}/delete`)
+                    button.btn.btn-sm.btn-danger.delete-product
                       i.fas.fa-trash.me-1
                       | Xóa
     else
       p.text-center.text-muted Không có sản phẩm nào.
+
+  // Modal for adding product
+  .modal#addProductModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Thêm sản phẩm mới
+          button.close(type="button", data-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#addProductForm
+            .form-group
+              label(for="name") Tên sản phẩm
+              input.form-control(type="text", name="name", required)
+            .form-group
+              label(for="price") Giá
+              input.form-control(type="number", name="price", required)
+            .form-group
+              label(for="quantity") Số lượng
+              input.form-control(type="number", name="quantity", required)
+            .form-group
+              label(for="category") Danh mục
+              input.form-control(type="text", name="category", required)
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-dismiss="modal") Đóng
+          button.btn.btn-primary(type="submit") Thêm sản phẩm
+
+  // Modal for editing product
+  .modal#editProductModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Sửa sản phẩm
+          button.close(type="button", data-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#editProductForm
+            input(type="hidden", name="id")
+            .form-group
+              label(for="name") Tên sản phẩm
+              input.form-control(type="text", name="name", required)
+            .form-group
+              label(for="price") Giá
+              input.form-control(type="number", name="price", required)
+            .form-group
+              label(for="quantity") Số lượng
+              input.form-control(type="number", name="quantity", required)
+            .form-group
+              label(for="category") Danh mục
+              input.form-control(type="text", name="category", required)
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-dismiss="modal") Đóng
+          button.btn.btn-primary(type="submit") Lưu thay đổi
+
+
