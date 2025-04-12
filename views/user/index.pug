@@ -1,0 +1,27 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\user\index.pug
+extends ../shared/layout
+
+block content
+  section.hero.bg-primary.text-white.py-5
+    .container.text-center
+      h1 Welcome to Home Consumer Products!
+      p.lead Find the best products for your home at unbeatable prices.
+
+  section.products.py-5
+    .container
+      h2.text-center.mb-4 Featured Products
+      if products.length > 0
+        .row.row-cols-1.row-cols-md-3.g-4
+          each product in products
+            .col
+              .card.h-100.shadow-sm
+                .product-image
+                  img.card-img-top(src=product.imgURL, alt=product.name)
+                .card-body
+                  h5.card-title #{product.name}
+                  p.card-text.text-muted Category: #{product.category ? product.category.name : 'Uncategorized'}
+                  p.card-text.text-success.font-weight-bold $#{product.price}
+                .card-footer.bg-transparent.border-0.text-center
+                  a.btn.btn-primary(href=`/products/${product._id}`) View Details
+      else
+        p.text-center.text-muted No products available.

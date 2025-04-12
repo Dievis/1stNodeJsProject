@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\routes\categories.js
+
 var express = require('express');
 var router = express.Router();
 let categorySchema = require('../schemas/category');

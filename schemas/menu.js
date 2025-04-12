@@ -11,14 +11,3 @@ let menuSchema = new mongoose.Schema({
     timestamps:true
 })
 module.exports = mongoose.model('menu',menuSchema)
-/*
-username: string, unique, required
-password: string,required
-email: string, required, unique
-fullName:string, default: ""
-avatarUrl:string, default: ""
-status: boolean, default: false
-role: Role,
-loginCount: int, default:0, min=0
-timestamp
-*/

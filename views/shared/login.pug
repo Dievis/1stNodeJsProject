@@ -1,0 +1,28 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\shared\login.pug
+extends ../shared/layout
+
+block content
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-6
+        .card
+          .card-header.bg-primary.text-white
+            h3.text-center Login
+          .card-body
+            //- Form đăng nhập
+            form(method="POST", action="/auth/login")
+              .mb-3
+                label.form-label(for="username") Username
+                input.form-control(type="text", name="username", id="username", placeholder="Enter your username", required)
+              .mb-3
+                label.form-label(for="password") Password
+                input.form-control(type="password", name="password", id="password", placeholder="Enter your password", required)
+              button.btn.btn-primary.w-100(type="submit") Login
+            //- Liên kết hỗ trợ
+            .mt-3.text-center
+              a.btn.btn-link(href="/auth/forgotpassword") Forgot Password?
+              a.btn.btn-secondary.ms-2(href="/auth/signup") Sign Up
+
+    //- Phần hiển thị lỗi
+    if error
+      .alert.alert-danger.mt-3 #{error}

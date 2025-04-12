@@ -2,12 +2,14 @@ var express = require('express');
 var router = express.Router();
 let productSchema = require('../schemas/product');
 let categorySchema = require('../schemas/category');
+let menuController = require('../controllers/menus'); // Thêm controller menu vào
+
 let slugify = require('slugify');
 let constants = require('../utils/constants');
 let { check_authentication, check_authorization } = require('../utils/check_auth');
 
 /* GET products listing. */
-router.get('/', async function (req, res, next) {
+router.get('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
     let query = req.query;
     console.log(query);
     let objQuery = {};
@@ -32,11 +34,18 @@ router.get('/', async function (req, res, next) {
         objQuery.price.$lte = 10000;
         objQuery.price.$gte = 0;
     }
-
+    
     let products = await productSchema.find(objQuery).populate(
         { path: 'category', select: 'name' }
     );
-    res.send(products);
+
+    res.render('admin/products', {
+        title: 'Products',
+        products: products,
+        user: res.locals.user
+    });
+
+    // res.send(products);
 });
 
 router.get('/:id', async function (req, res, next) {

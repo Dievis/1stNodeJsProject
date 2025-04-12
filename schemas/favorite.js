@@ -3,20 +3,20 @@ let mongoose = require('mongoose');
 let favoriteSchema = mongoose.Schema({
     user: {
         type: mongoose.Types.ObjectId,
-        ref: 'user', // Tham chiếu đến schema user
+        ref: 'user',
         required: true
     },
     product: {
         type: mongoose.Types.ObjectId,
-        ref: 'product', // Tham chiếu đến schema product
+        ref: 'product', 
         required: true
     },
     createdAt: {
         type: Date,
-        default: Date.now // Thời gian thêm vào danh sách yêu thích
+        default: Date.now 
     }
 }, {
-    timestamps: true // Tự động thêm createdAt và updatedAt
+    timestamps: true 
 });
 
 module.exports = mongoose.model('favorite', favoriteSchema);

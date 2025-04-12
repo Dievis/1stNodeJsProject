@@ -1,0 +1,17 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\user\signup.pug
+extends ../shared/layout
+
+block content
+  h1 Sign Up
+  form(method="POST", action="/auth/signup")
+    .mb-3
+      label.form-label(for="username") Username
+      input.form-control(type="text", name="username", id="username", required)
+    .mb-3
+      label.form-label(for="email") Email
+      input.form-control(type="email", name="email", id="email", required)
+    .mb-3
+      label.form-label(for="password") Password
+      input.form-control(type="password", name="password", id="password", required)
+    button.btn.btn-primary(type="submit") Register
+    a.btn.btn-secondary.ms-2(href="/auth/login") Back to Login

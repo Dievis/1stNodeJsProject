@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\routes\auth.pug
+
 var userController = require('../controllers/users');
 let jwt = require('jsonwebtoken');
 let constants = require('../utils/constants');
@@ -19,21 +21,26 @@ module.exports = {
             }
 
             if (!token) {
-                return res.redirect('/auth/login'); // Chuyển hướng đến trang login nếu chưa đăng nhập
+                console.log('No token found');
+                return res.redirect('/auth/login'); // Chuyển hướng nếu không có token
             }
 
             // Giải mã token
             let result = jwt.verify(token, constants.SECRET_KEY);
+            console.log('Decoded Token:', result); // Log thông tin giải mã token
 
             // Lấy thông tin người dùng từ cơ sở dữ liệu
-            let user = await userController.GetUserByID(result.id);
+            let user = await userController.GetUserByID(result.id); // Đã sửa lỗi tên hàm
             if (!user) {
+                console.log('User not found');
                 return res.redirect('/auth/login'); // Chuyển hướng nếu người dùng không tồn tại
             }
 
             req.user = user; // Gắn thông tin người dùng vào request
+            res.locals.user = user; // Gắn thông tin người dùng vào res.locals để sử dụng trong giao diện
             next();
         } catch (error) {
+            console.error('Error in check_authentication:', error.message);
             return res.redirect('/auth/login'); // Chuyển hướng nếu token không hợp lệ
         }
     },

@@ -1,10 +1,14 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\routes\index.js
+
 var express = require('express');
 var router = express.Router();
 var menuController = require('../controllers/menus');
 let productSchema = require('../schemas/product');
+let { check_authentication } = require('../utils/check_auth');
+
 
 /* GET home page. */
-router.get('/', async function (req, res, next) {
+router.get('/', check_authentication,async function (req, res, next) {
     try {
         let menus = await menuController.GetAllMenus();
         console.log('Menus:', menus); // Log danh sách menu
@@ -14,10 +18,11 @@ router.get('/', async function (req, res, next) {
         );
         console.log('Products:', products); // Log danh sách sản phẩm
 
-        res.render('index', {
+        res.render('user/index', {
             title: 'Home Consumer Products',
             menus: menus,
-            products: products
+            products: products,
+            user: res.locals.user // Truyền thông tin user vào giao diện
         });
     } catch (error) {
         console.error('Error:', error.message); // Log lỗi

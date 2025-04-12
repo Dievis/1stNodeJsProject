@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\routes\users.js
+
 var express = require('express');
 var router = express.Router();
 let userController = require('../controllers/users')
@@ -11,12 +13,18 @@ router.get('/',check_authentication,check_authorization(constants.MOD_PERMISSION
   console.log(req.headers.authorization);
   let users = await userController.GetAllUser();
   CreateSuccessResponse(res, 200, users)
+
+  res.render('admin/users', {
+    title: 'Users',
+    user: res.locals.user
+});
 });
 router.post('/', async function (req, res, next) {
   try {
     let body = req.body;
     let newUser = await userController.CreateAnUser(body.username, body.password, body.email, body.role);
     CreateSuccessResponse(res, 200, newUser)
+    
   } catch (error) {
     CreateErrorResponse(res, 404, error.message)
   }

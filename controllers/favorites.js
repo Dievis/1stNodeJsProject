@@ -50,7 +50,7 @@ async function updateFavorite(userId, productId, newProductId) {
         if (!existingFavorite) {
             throw new Error('Sản phẩm không tồn tại trong danh sách yêu thích');
         }
-
+        
         existingFavorite.product = newProductId;
         await existingFavorite.save();
         return existingFavorite;

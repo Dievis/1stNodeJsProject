@@ -1,0 +1,39 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\products.pug
+extends ../admin/Adminlayout
+
+block content
+  .container
+    h1.text-center.mb-4 Quản lý sản phẩm
+    .d-flex.justify-content-between.mb-3
+      a.btn.btn-primary(href='/admin/products/create')
+        i.fas.fa-plus-circle.me-2
+        | Thêm sản phẩm mới
+
+    if products && products.length > 0
+      .table-responsive
+        table.table.table-striped.table-hover
+          thead
+            tr
+              th Tên sản phẩm
+              th Giá
+              th Số lượng
+              th Danh mục
+              if user && user.role !== 'user'
+                th Hành động
+          tbody
+            each product in products
+              tr
+                td= product.name
+                td $#{product.price}
+                td= product.quantity
+                td= product.category ? product.category.name : 'Không có danh mục'
+                if user && user.role !== 'user'
+                  td
+                    a.btn.btn-sm.btn-warning.me-2(href=`/products/${product._id}/edit`)
+                      i.fas.fa-edit.me-1
+                      | Sửa
+                    a.btn.btn-sm.btn-danger(href=`/products/${product._id}/delete`)
+                      i.fas.fa-trash.me-1
+                      | Xóa
+    else
+      p.text-center.text-muted Không có sản phẩm nào.
