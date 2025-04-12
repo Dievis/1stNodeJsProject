@@ -20,6 +20,10 @@ const cartItemSchema = mongoose.Schema({
         min: 0,
         max: 100,
         default: 0 
+    },
+    isChoosed: {
+        type: Boolean,
+        default: true 
     }
 }, {
     timestamps: true 
@@ -39,7 +43,7 @@ const cartSchema = mongoose.Schema({
     isCheckedOut: {
         type: Boolean,
         default: false 
-    }
+    }       
 }, {
     timestamps: true 
 });

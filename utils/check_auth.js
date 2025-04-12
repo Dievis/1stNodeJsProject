@@ -8,40 +8,23 @@ const RoleModel = require('../schemas/role'); // Đảm bảo đường dẫn đ
 module.exports = {
     check_authentication: async function (req, res, next) {
         try {
-            let token;
-
-            // Lấy token từ header hoặc cookie
-            if (req.headers && req.headers.authorization) {
-                let authorizedToken = req.headers.authorization;
-                if (authorizedToken.startsWith("Bearer ")) {
-                    token = authorizedToken.split(" ")[1]; // Lấy phần sau "Bearer "
-                }
-            } else if (req.signedCookies && req.signedCookies.token) {
-                token = req.signedCookies.token; // Lấy token từ cookie
-            }
-
+            const token = req.signedCookies.token;
             if (!token) {
-                console.log('No token found');
-                return res.redirect('/auth/login'); // Chuyển hướng nếu không có token
+                return res.redirect('/auth/login');
             }
 
-            // Giải mã token
-            let result = jwt.verify(token, constants.SECRET_KEY);
-            console.log('Decoded Token:', result); // Log thông tin giải mã token
-
-            // Lấy thông tin người dùng từ cơ sở dữ liệu
-            let user = await userController.GetUserByID(result.id); // Đã sửa lỗi tên hàm
+            const decoded = jwt.verify(token, constants.SECRET_KEY);
+            const user = await userController.GetUserByID(decoded.id);
             if (!user) {
-                console.log('User not found');
-                return res.redirect('/auth/login'); // Chuyển hướng nếu người dùng không tồn tại
+                return res.redirect('/auth/login');
             }
 
-            req.user = user; // Gắn thông tin người dùng vào request
-            res.locals.user = user; // Gắn thông tin người dùng vào res.locals để sử dụng trong giao diện
+            req.user = user;
+            res.locals.user = user;
             next();
         } catch (error) {
-            console.error('Error in check_authentication:', error.message);
-            return res.redirect('/auth/login'); // Chuyển hướng nếu token không hợp lệ
+            console.error('Authentication error:', error.message);
+            return res.redirect('/auth/login');
         }
     },
 

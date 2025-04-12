@@ -1,10 +1,10 @@
-extends ../admin/Adminlayout
+extends ../admin/layout
 
 block content
   .container
     h1.text-center.mb-4 Quản lý danh mục
     .d-flex.justify-content-between.mb-3
-      a.btn.btn-primary(href='/admin/categories/create')
+      a.btn.btn-primary(href='#', data-bs-toggle="modal", data-bs-target="#addCategoryModal")
         i.fas.fa-plus-circle.me-2
         | Thêm danh mục mới
 
@@ -18,16 +18,168 @@ block content
               th Hành động
           tbody
             each category in categories
-              tr
+              tr(data-id=category._id)
                 td= category.name
                 td= category.description || 'Không có mô tả'
                 td
-                  a.btn.btn-sm.btn-warning.me-2(href=`/admin/categories/${category._id}/edit`)
+                  a.btn.btn-sm.btn-warning.me-2.edit-category(href='#', data-bs-toggle="modal", data-bs-target="#editCategoryModal")
                     i.fas.fa-edit.me-1
                     | Sửa
-                  a.btn.btn-sm.btn-danger(href=`/admin/categories/${category._id}/delete`)
+                  button.btn.btn-sm.btn-danger.delete-category
                     i.fas.fa-trash.me-1
                     | Xóa
     else
       p.text-center.text-muted Không có danh mục nào.
 
+  // Modal for adding category
+  .modal#addCategoryModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Thêm danh mục mới
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#addCategoryForm
+            .form-group
+              label(for="name") Tên danh mục
+              input.form-control(type="text", id="name", required)
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+          button.btn.btn-success(type="submit") Thêm mới
+
+  // Modal for editing category
+  .modal#editCategoryModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Sửa danh mục
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#editCategoryForm
+            input(type="hidden", name="id")
+            .form-group
+              label(for="name") Tên danh mục
+              input.form-control(type="text", name="name", required)
+            .form-group
+              label(for="description") Mô tả
+              textarea.form-control(name="description", rows="4", placeholder="Nhập mô tả danh mục")
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+          button.btn.btn-primary(type="submit") Lưu thay đổi
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Xóa danh mục
+      document.querySelectorAll('.delete-category').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const row = e.target.closest('tr');
+          const categoryId = row.getAttribute('data-id'); // Lấy ID từ thuộc tính data-id
+          if (confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
+            try {
+              const response = await fetch(`/categories/${categoryId}`, { // Đảm bảo URL đúng
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              const result = await response.json();
+              if (result.success) {
+                alert('Xóa danh mục thành công!');
+                row.remove();
+              } else {
+                alert('Xóa danh mục thất bại: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error deleting category:', error);
+              alert('Đã xảy ra lỗi khi xóa danh mục.');
+            }
+          }
+        });
+      });
+
+      // Sửa danh mục
+      document.querySelectorAll('.edit-category').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const row = e.target.closest('tr');
+          const categoryId = row.getAttribute('data-id');
+          const name = row.children[0].innerText;
+          const description = row.children[1].innerText;
+
+          // Điền thông tin vào modal
+          const form = document.querySelector('#editCategoryForm');
+          form.id.value = categoryId;
+          form.name.value = name;
+          form.description.value = description;
+
+          // Hiển thị modal
+          $('#editCategoryModal').modal('show');
+        });
+      });
+
+      // Gửi yêu cầu cập nhật danh mục
+      document.querySelector('#editCategoryForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const categoryId = form.id.value;
+        const body = {
+          name: form.name.value,
+          description: form.description.value
+        };
+
+        try {
+          const response = await fetch(`/categories/${categoryId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Cập nhật danh mục thành công!');
+            location.reload(); // Tải lại trang
+          } else {
+            alert('Cập nhật danh mục thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error updating category:', error);
+          alert('Đã xảy ra lỗi khi cập nhật danh mục.');
+        }
+      });
+
+      // Thêm danh mục
+      document.querySelector('#addCategoryForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('Form submitted'); // Log để kiểm tra sự kiện submit
+        const form = e.target;
+        const body = {
+          name: form.name.value,
+          description: form.description.value
+        };
+
+        try {
+          const response = await fetch('/categories', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Thêm danh mục thành công!');
+            location.reload(); // Tải lại trang
+          } else {
+            alert('Thêm danh mục thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error adding category:', error);
+          alert('Đã xảy ra lỗi khi thêm danh mục.');
+        }
+      });
+    });
+
+    

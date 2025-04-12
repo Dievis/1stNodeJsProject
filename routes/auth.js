@@ -34,7 +34,7 @@ router.get('/signup', async function (req, res) {
     let menus = await menuController.GetAllMenus();
     console.log('Menus:', menus); // Log danh sách menu
     
-    res.render('user/signup', {
+    res.render('shared/signup', {
         title: 'Signup',
         menus: menus,
     });
@@ -52,7 +52,7 @@ router.get('/forgotpassword', async function (req, res) {
     let menus = await menuController.GetAllMenus();
     console.log('Menus:', menus); // Log danh sách menu
     
-    res.render('user/forgotpassword', {
+    res.render('shared/forgotpassword', {
         title: 'Forgot Password',
         menus: menus,
     });
