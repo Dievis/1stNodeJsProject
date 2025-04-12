@@ -22,7 +22,7 @@ let fs = require('fs')
 // ======== Thêm các route render giao diện PUG ========
 router.get('/login', async function (req, res) {
     let menus = await menuController.GetAllMenus();
-    console.log('Menus:', menus); // Log danh sách menu
+    console.log('Menus:', menus); 
     
     res.render('shared/login', {
         title: 'Login',
@@ -32,7 +32,7 @@ router.get('/login', async function (req, res) {
 });
 router.get('/signup', async function (req, res) {
     let menus = await menuController.GetAllMenus();
-    console.log('Menus:', menus); // Log danh sách menu
+    console.log('Menus:', menus); 
     
     res.render('shared/signup', {
         title: 'Signup',
@@ -41,7 +41,7 @@ router.get('/signup', async function (req, res) {
 });
 router.get('/changepassword', async function (req, res) {
     let menus = await menuController.GetAllMenus();
-    console.log('Menus:', menus); // Log danh sách menu
+    console.log('Menus:', menus); 
     
     res.render('user/changepassword', {
         title: 'Change Password',
@@ -50,7 +50,7 @@ router.get('/changepassword', async function (req, res) {
 });
 router.get('/forgotpassword', async function (req, res) {
     let menus = await menuController.GetAllMenus();
-    console.log('Menus:', menus); // Log danh sách menu
+    console.log('Menus:', menus); 
     
     res.render('shared/forgotpassword', {
         title: 'Forgot Password',
@@ -65,12 +65,39 @@ router.get('/resetpassword/:token', async function (req, res) {
 router.post('/signup', SignUpValidator, validate, async function (req, res, next) {
     try {
         let newUser = await userController.CreateAnUser(
-            req.body.username, req.body.password, req.body.email, 'user'
-        )
-        //CreateSuccessResponse(res, 200, newUser); // Gửi response thành công
-        return res.redirect('/auth/login'); 
+            req.body.username,
+            req.body.password, 
+            req.body.email,
+            'user'
+        );
+
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return res.status(201).json({
+                success: true,
+                message: 'Đăng ký thành công',
+                user: {
+                    id: newUser._id,
+                    username: newUser.username,
+                    email: newUser.email
+                }
+            });
+        } else {
+            return res.redirect('/auth/login');
+        }
     } catch (error) {
-        next(error);
+        console.error('Signup error:', error.message);
+
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
+            });
+        } else {
+            return res.render('shared/signup', {
+                title: 'Signup',
+                error: 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
+            });
+        }
     }
 });
 router.post('/login',  LoginValidator, validate, async function (req, res, next) {
@@ -79,18 +106,14 @@ router.post('/login',  LoginValidator, validate, async function (req, res, next)
         const exp = (new Date(Date.now() + 60 * 60 * 1000)).getTime(); // Token hết hạn sau 1 giờ
         const token = jwt.sign({ id: user_id, exp: exp }, constants.SECRET_KEY);
 
-        // Lưu token vào cookie
         res.cookie('token', token, {
             httpOnly: true,
-            signed: true, // Cookie phải được ký
+            signed: true, 
             maxAge: 60 * 60 * 1000 // 1 giờ
         });
 
-        // Lấy thông tin người dùng để kiểm tra vai trò
         const user = await userSchema.findById(user_id).populate('role');
-        // Kiểm tra kiểu yêu cầu (JSON hoặc giao diện web)
         if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
-            // Trả về JSON nếu yêu cầu là API
             return res.status(200).json({
                 success: true,
                 message: 'Đăng nhập thành công',
@@ -114,15 +137,12 @@ router.post('/login',  LoginValidator, validate, async function (req, res, next)
     } catch (error) {
         console.error('Login error:', error.message);
 
-        // Kiểm tra kiểu yêu cầu (JSON hoặc giao diện web)
         if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
-            // Trả về JSON nếu yêu cầu là API
             return res.status(401).json({
                 success: false,
                 message: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
             });
         } else {
-            // Xử lý giao diện web
             return res.render('shared/login', {
                 title: 'Login',
                 error: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
@@ -158,24 +178,19 @@ router.post('/forgotpassword', ForgotPasswordValidator, validate, async function
         let email = req.body.email;
         let user = await userController.GetUserByEmail(email);
 
-        // Kiểm tra nếu user không tồn tại
         if (!user) {
             return CreateErrorResponse(res, 404, "Email không tồn tại trong hệ thống");
         }
 
-        // Tạo token reset mật khẩu
         const resetToken = crypto.randomBytes(32).toString('hex');
         user.resetPasswordToken = resetToken;
         user.resetPasswordTokenExp = new Date(Date.now() + 10 * 60 * 1000); // Token hết hạn sau 10 phút
         await user.save();
 
-        // Tạo URL reset mật khẩu
         const resetUrl = `http://localhost:3000/auth/resetpassword/${user.resetPasswordToken}`;        
         
-        // Gửi email reset mật khẩu
         await mailer.sendMailForgotPassword(user.email, resetUrl);
         
-        // Trả về phản hồi thành công
         CreateSuccessResponse(res, 200, { message: "Email đặt lại mật khẩu đã được gửi.", resetUrl });
     } catch (error) {
         next(error)
@@ -187,10 +202,9 @@ router.post('/resetpassword/:token', async function (req, res, next) {
         let token = req.params.token;
         let password = req.body.password;
 
-        // Tìm user dựa trên token và kiểm tra thời gian hết hạn
         let user = await userSchema.findOne({
             resetPasswordToken: token,
-            resetPasswordTokenExp: { $gt: Date.now() } // Token chưa hết hạn
+            resetPasswordTokenExp: { $gt: Date.now() } 
         });
 
         if (!user) {
@@ -198,7 +212,7 @@ router.post('/resetpassword/:token', async function (req, res, next) {
         }
 
         // Cập nhật mật khẩu mới
-        user.password = bcrypt.hashSync(password, 10); // Hash mật khẩu mới
+        user.password = bcrypt.hashSync(password, 10);
         user.resetPasswordToken = null;
         user.resetPasswordTokenExp = null;
         await user.save();

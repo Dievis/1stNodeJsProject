@@ -1,5 +1,6 @@
 let userSchema = require('../schemas/user');
 let roleSchema = require('../schemas/role');
+const jwt = require('jsonwebtoken');
 let bcrypt = require('bcrypt');
 
 module.exports = {
@@ -34,22 +35,23 @@ module.exports = {
   // Tạo người dùng mới
   CreateAnUser: async function (username, password, email, role) {
     try {
-      let roleObj = await roleSchema.findOne({ name: role }); // Tìm role theo tên
-      if (roleObj) {
-        let hashedPassword = bcrypt.hashSync(password, 10); // Hash mật khẩu
-        let newUser = new userSchema({
-          username: username,
-          password: hashedPassword,
-          email: email,
-          role: roleObj._id
-        });
-        return await newUser.save();
-      } else {
-        throw new Error('Role không tồn tại');
-      }
+        let roleObj = await roleSchema.findOne({ name: role }); // Tìm role theo tên
+        if (roleObj) {
+            // Hash mật khẩu
+            let hashedPassword = bcrypt.hash(password, 10); // 10 là số vòng lặp để mã hóa
+            let newUser = new userSchema({
+                username: username,
+                password: hashedPassword, // Lưu mật khẩu đã mã hóa
+                email: email,
+                role: roleObj._id
+            });
+            return await newUser.save();
+        } else {
+            throw new Error('Role không tồn tại');
+        }
     } catch (error) {
-      console.error('Error in CreateAnUser:', error.message);
-      throw new Error(error.message);
+        console.error('Error in CreateAnUser:', error.message);
+        throw new Error(error.message);
     }
   },
 
@@ -95,18 +97,19 @@ module.exports = {
     console.log("Checking login for:", username);
     let user = await userSchema.findOne({ username: username });
     if (!user) {
-      console.log("User not found:", username);
-      throw new Error("Tài khoản không tồn tại hoặc đã bị vô hiệu hóa");
-    } else {
-      console.log("User found:", user);
-      if (bcrypt.compareSync(password, user.password)) {
-        console.log("Password match for user:", username);
-        return user._id;
-      } else {
+        console.log("User not found:", username);
+        throw new Error("Tài khoản không tồn tại hoặc đã bị vô hiệu hóa");
+    }
+
+    // So sánh mật khẩu
+    const isMatch = bcrypt.compare(password, user.password);
+    if (!isMatch) {
         console.log("Password mismatch for user:", username);
         throw new Error("Username hoặc password không đúng");
-      }
     }
+
+    console.log("Password match for user:", username);
+    return user._id; // Trả về ID người dùng nếu đăng nhập thành công
   },
 
   // Đổi mật khẩu

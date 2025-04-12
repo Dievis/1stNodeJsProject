@@ -15,12 +15,6 @@ const cartItemSchema = mongoose.Schema({
         type: Number,
         required: true 
     },
-    discount: {
-        type: Number,
-        min: 0,
-        max: 100,
-        default: 0 
-    },
     isChoosed: {
         type: Boolean,
         default: true 
