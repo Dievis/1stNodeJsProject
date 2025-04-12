@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1 Danh sách yêu thích
+
+  if favorites.length > 0
+    .favorites-container
+      each favorite in favorites
+        .favorite-item
+          img(src=favorite.product.imgURL alt=favorite.product.name)
+          .product-info
+            h2= favorite.product.name
+            p Giá: #{favorite.product.price} VND
+            p Mô tả: #{favorite.product.description}
+          .actions
+            form(method="POST" action=`/favorites/remove/${favorite.product._id}`)
+              button.btn.btn-danger(type="submit") Xóa khỏi yêu thích
+  else
+    p Không có sản phẩm nào trong danh sách yêu thích.

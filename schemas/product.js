@@ -47,4 +47,4 @@ let productSchema = mongoose.Schema({
     timestamps:true
 })
 module.exports = mongoose.model('product',productSchema)
-// Tao 1 schema cho obj category gồm name,description, timestamp
+// Tao 1 schema cho obj category gồm name,description, timestamp
