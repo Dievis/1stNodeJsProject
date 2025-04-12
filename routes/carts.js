@@ -11,4 +11,6 @@ router.put('/:userId', check_authentication, cartsController.updateCartItem);
 
 router.delete('/:userId/:productId', check_authentication, cartsController.deleteCartItem);
 
+router.get('/', check_authentication, cartsController.getCartByUser);
+
 module.exports = router;
