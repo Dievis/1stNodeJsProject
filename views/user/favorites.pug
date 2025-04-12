@@ -1,0 +1,51 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\user\favorites.pug
+extends layout
+
+block content
+  .container.mt-5
+    h1.text-center.mb-4 Danh sách yêu thích
+    if favorites && favorites.length > 0
+      .row
+        each item in favorites
+          .col-md-4.mb-4
+            .card
+              img.card-img-top(src=item.image, alt=item.name)
+              .card-body
+                h5.card-title= item.name
+                p.card-text= item.description || 'Không có mô tả'
+                .d-flex.justify-content-between
+                  a.btn.btn-primary(href=`/products/${item._id}`) Xem chi tiết
+                  button.btn.btn-danger.remove-favorite(data-id=item._id) Xóa
+    else
+      p.text-center.text-muted Không có mục yêu thích nào.
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Xóa mục yêu thích
+      document.querySelectorAll('.remove-favorite').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const itemId = e.target.getAttribute('data-id');
+          if (confirm('Bạn có chắc chắn muốn xóa mục này khỏi danh sách yêu thích?')) {
+            try {
+              const response = await fetch(`/favorites/${itemId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              const result = await response.json();
+              if (result.success) {
+                alert('Xóa thành công!');
+                location.reload(); // Tải lại trang
+              } else {
+                alert('Xóa thất bại: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error removing favorite:', error);
+              alert('Đã xảy ra lỗi khi xóa mục yêu thích.');
+            }
+          }
+        });
+      });
+    });
