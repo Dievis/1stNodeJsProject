@@ -62,7 +62,10 @@ app.use(async (req, res, next) => {
     next();
 });
 
-// app.use(check_authentication); // Áp dụng middleware cho tất cả các route
+app.use((req, res, next) => {
+  res.locals.activeRoute = req.path; // Truyền route hiện tại vào biến cục bộ
+  next();
+});
 
 app.use('/admin', adminRouter); 
 app.use('/', indexRouter);

@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const productSchema = require('../schemas/product');
 const categorySchema = require('../schemas/category');
+const userController = require('../controllers/users'); // Đảm bảo đường dẫn đúng
+const userSchema = require('../schemas/user'); // Đảm bảo đường dẫn đúng
 const { check_authentication, check_authorization } = require('../utils/check_auth');
 
 // Middleware: Chỉ cho phép admin truy cập

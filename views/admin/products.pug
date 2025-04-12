@@ -1,5 +1,4 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\products.pug
-extends ../admin/Adminlayout
+extends ../admin/layout
 
 block content
   .container
@@ -18,8 +17,7 @@ block content
               th Giá
               th Số lượng
               th Danh mục
-              if user && user.role !== 'user'
-                th Hành động
+              th Hành động
           tbody
             each product in products
               tr(data-id=product._id)
@@ -27,14 +25,13 @@ block content
                 td $#{product.price}
                 td= product.quantity
                 td= product.category ? product.category.name : 'Không có danh mục'
-                if user && user.role !== 'user'
-                  td
-                    a.btn.btn-sm.btn-warning.me-2.edit-product(href='#', data-toggle="modal", data-target="#editProductModal")
-                      i.fas.fa-edit.me-1
-                      | Sửa
-                    button.btn.btn-sm.btn-danger.delete-product
-                      i.fas.fa-trash.me-1
-                      | Xóa
+                td
+                  a.btn.btn-sm.btn-warning.me-2.edit-product(href='#', data-toggle="modal", data-target="#editProductModal")
+                    i.fas.fa-edit.me-1
+                    | Sửa
+                  button.btn.btn-sm.btn-danger.delete-product
+                    i.fas.fa-trash.me-1
+                    | Xóa
     else
       p.text-center.text-muted Không có sản phẩm nào.
 
@@ -91,4 +88,122 @@ block content
           button.btn.btn-secondary(type="button", data-dismiss="modal") Đóng
           button.btn.btn-primary(type="submit") Lưu thay đổi
 
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Xóa sản phẩm
+      document.querySelectorAll('.delete-product').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const row = e.target.closest('tr');
+          const productId = row.getAttribute('data-id');
+          if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+            try {
+              const response = await fetch(`/products/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              const result = await response.json();
+              if (result.success) {
+                alert('Xóa sản phẩm thành công!');
+                row.remove();
+              } else {
+                alert('Xóa sản phẩm thất bại: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error deleting product:', error);
+              alert('Đã xảy ra lỗi khi xóa sản phẩm.');
+            }
+          }
+        });
+      });
 
+      // Sửa sản phẩm
+      document.querySelectorAll('.edit-product').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const row = e.target.closest('tr');
+          const productId = row.getAttribute('data-id');
+          const name = row.children[0].innerText;
+          const price = row.children[1].innerText.replace('$', '');
+          const quantity = row.children[2].innerText;
+          const category = row.children[3].innerText;
+
+          // Điền thông tin vào modal
+          const form = document.querySelector('#editProductForm');
+          form.id.value = productId;
+          form.name.value = name;
+          form.price.value = price;
+          form.quantity.value = quantity;
+          form.category.value = category;
+
+          // Hiển thị modal
+          $('#editProductModal').modal('show');
+        });
+      });
+
+      // Gửi yêu cầu thêm sản phẩm
+      document.querySelector('#addProductForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const body = {
+          name: form.name.value,
+          price: form.price.value,
+          quantity: form.quantity.value,
+          category: form.category.value
+        };
+
+        try {
+          const response = await fetch('/products', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Thêm sản phẩm thành công!');
+            location.reload(); // Tải lại trang
+          } else {
+            alert('Thêm sản phẩm thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error adding product:', error);
+          alert('Đã xảy ra lỗi khi thêm sản phẩm.');
+        }
+      });
+
+      // Gửi yêu cầu cập nhật sản phẩm
+      document.querySelector('#editProductForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const productId = form.id.value;
+        const body = {
+          name: form.name.value,
+          price: form.price.value,
+          quantity: form.quantity.value,
+          category: form.category.value
+        };
+
+        try {
+          const response = await fetch(`/products/${productId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Cập nhật sản phẩm thành công!');
+            location.reload(); // Tải lại trang
+          } else {
+            alert('Cập nhật sản phẩm thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error updating product:', error);
+          alert('Đã xảy ra lỗi khi cập nhật sản phẩm.');
+        }
+      });
+    });
