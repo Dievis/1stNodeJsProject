@@ -88,18 +88,46 @@ router.post('/login',  LoginValidator, validate, async function (req, res, next)
 
         // Lấy thông tin người dùng để kiểm tra vai trò
         const user = await userSchema.findById(user_id).populate('role');
-        if (user.role && user.role.name === 'admin') {
-            console.log('Admin login successful:', user);
-            return res.redirect('/admin/dashboard');
+        // Kiểm tra kiểu yêu cầu (JSON hoặc giao diện web)
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            // Trả về JSON nếu yêu cầu là API
+            return res.status(200).json({
+                success: true,
+                message: 'Đăng nhập thành công',
+                token: token,
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role.name
+                }
+            });
         } else {
-            return res.redirect('/');
+            // Xử lý giao diện web
+            if (user.role && user.role.name === 'admin') {
+                console.log('Admin login successful:', user);
+                return res.redirect('/admin/dashboard');
+            } else {
+                return res.redirect('/');
+            }
         }
     } catch (error) {
         console.error('Login error:', error.message);
-        return res.render('shared/login', {
-            title: 'Login',
-            error: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
-        });
+
+        // Kiểm tra kiểu yêu cầu (JSON hoặc giao diện web)
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            // Trả về JSON nếu yêu cầu là API
+            return res.status(401).json({
+                success: false,
+                message: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+            });
+        } else {
+            // Xử lý giao diện web
+            return res.render('shared/login', {
+                title: 'Login',
+                error: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+            });
+        }
     }
 });
 router.post('/logout', function (req, res, next) {
