@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\routes\carts.js
-
 const express = require('express');
 const router = express.Router();
 const { check_authentication } = require('../utils/check_auth');

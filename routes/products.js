@@ -9,6 +9,8 @@ const {
 } = require('../controllers/products');
 const { check_authentication, check_authorization } = require('../utils/check_auth');
 const constants = require('../utils/constants');
+const productsController = require('../controllers/products');
+
 
 // Lấy danh sách sản phẩm
 router.get('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), getAllProducts);
@@ -24,5 +26,6 @@ router.put('/:id', check_authentication, check_authorization(constants.ADMIN_PER
 
 // Xóa sản phẩm
 router.delete('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), deleteProduct);
+
 
 module.exports = router;
