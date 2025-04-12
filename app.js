@@ -4,12 +4,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
-let { CreateSuccessResponse, CreateErrorResponse } = require('./utils/responseHandler');
 let constants = require("./utils/constants");
 let cors = require('cors');
 const jwt = require('jsonwebtoken');
 const userController = require('./controllers/users');
-const { check_authentication } = require('./utils/check_auth');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -78,6 +76,8 @@ app.use('/categories', require('./routes/categories'));
 app.use('/favorites', require('./routes/favorites'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/vouchers', require('./routes/vouchers'));
+app.use('/carts', require('./routes/carts'));
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
