@@ -43,7 +43,7 @@ exports.addToCart = async (req, res) => {
         }
 
         cart.totalPrice = cart.items.reduce((total, item) => {
-            return total + (item.price * item.quantity * (1 - item.discount / 100));
+            return total + (item.price * item.quantity);
         }, 0);
 
         await cart.save();

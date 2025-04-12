@@ -14,7 +14,7 @@ module.exports = {
             }
 
             const decoded = jwt.verify(token, constants.SECRET_KEY);
-            const user = await userController.GetUserByID(decoded.id);
+            const user = await userController.GetUserById(decoded.id);
             if (!user) {
                 return res.redirect('/auth/login');
             }

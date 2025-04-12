@@ -11,7 +11,7 @@ module.exports = {
   },
 
   // Lấy người dùng theo ID
-  GetUserByID: async function (id) {
+  GetUserById: async function (id) {
     try {
       const user = await userSchema.findById(id).populate('role', 'name'); // Chỉ lấy trường 'name' từ role
       return user;

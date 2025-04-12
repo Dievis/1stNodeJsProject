@@ -67,7 +67,7 @@ router.post('/signup', SignUpValidator, validate, async function (req, res, next
         let newUser = await userController.CreateAnUser(
             req.body.username, req.body.password, req.body.email, 'user'
         )
-        //CreateSuccessResponse(res, 200, newUser); // Gửi response thành công
+        CreateSuccessResponse(res, 200, newUser); // Gửi response thành công
         return res.redirect('/auth/login'); 
     } catch (error) {
         next(error);
@@ -107,7 +107,12 @@ router.post('/login',  LoginValidator, validate, async function (req, res, next)
             if (user.role && user.role.name === 'admin') {
                 console.log('Admin login successful:', user);
                 return res.redirect('/admin/dashboard');
-            } else {
+            }
+            else if (user.role && user.role.name === 'user') {
+                console.log('User login successful:', user);
+                return res.redirect('/');
+            } 
+            else {
                 return res.redirect('/');
             }
         }
