@@ -4,14 +4,14 @@ var router = express.Router();
 var userController = require('../controllers/users');
 var menuController = require('../controllers/menus');
 let userSchema = require('../schemas/user'); 
-
+let bcrypt = require('bcrypt');
 let { CreateSuccessResponse, CreateCookieResponse } = require('../utils/responseHandler')
 let jwt = require('jsonwebtoken')
 let constants = require('../utils/constants')
 let { check_authentication } = require('../utils/check_auth')
 let crypto = require('crypto')
 let mailer = require('../utils/mailer')
-let { SignUpValidator, LoginValidator, validate } = require('../utils/validator')
+let { SignUpValidator, LoginValidator, ForgotPasswordValidator, validate } = require('../utils/validator')
 let multer = require('multer')
 let path = require('path')
 let FormData = require('form-data')
@@ -153,34 +153,64 @@ router.post('/change_password', check_authentication,
         }
     })
 
-router.post('/forgotpassword', async function (req, res, next) {
+router.post('/forgotpassword', ForgotPasswordValidator, validate, async function (req, res, next) {
     try {
         let email = req.body.email;
         let user = await userController.GetUserByEmail(email);
-        user.resetPasswordToken = crypto.randomBytes(32).toString('hex');
-        user.resetPasswordTokenExp = (new Date(Date.now() + 10 * 60 * 1000));
+
+        // Kiểm tra nếu user không tồn tại
+        if (!user) {
+            return CreateErrorResponse(res, 404, "Email không tồn tại trong hệ thống");
+        }
+
+        // Tạo token reset mật khẩu
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordTokenExp = new Date(Date.now() + 10 * 60 * 1000); // Token hết hạn sau 10 phút
         await user.save();
-        let url = 'http://localhost:3000/auth/resetpassword/' + user.resetPasswordToken;
-        await mailer.sendMailForgotPassword(user.email, url);
-        CreateSuccessResponse(res, 200, url)
+
+        // Tạo URL reset mật khẩu
+        const resetUrl = `http://localhost:3000/auth/resetpassword/${user.resetPasswordToken}`;        
+        
+        // Gửi email reset mật khẩu
+        await mailer.sendMailForgotPassword(user.email, resetUrl);
+        
+        // Trả về phản hồi thành công
+        CreateSuccessResponse(res, 200, { message: "Email đặt lại mật khẩu đã được gửi.", resetUrl });
     } catch (error) {
         next(error)
     }
 })
+
 router.post('/resetpassword/:token', async function (req, res, next) {
     try {
         let token = req.params.token;
         let password = req.body.password;
-        let user = await userController.GetUserByToken(token);
-        user.password = password;
+
+        // Tìm user dựa trên token và kiểm tra thời gian hết hạn
+        let user = await userSchema.findOne({
+            resetPasswordToken: token,
+            resetPasswordTokenExp: { $gt: Date.now() } // Token chưa hết hạn
+        });
+
+        if (!user) {
+            return CreateErrorResponse(res, 400, "Token không hợp lệ hoặc đã hết hạn");
+        }
+
+        // Cập nhật mật khẩu mới
+        user.password = bcrypt.hashSync(password, 10); // Hash mật khẩu mới
         user.resetPasswordToken = null;
         user.resetPasswordTokenExp = null;
         await user.save();
-        CreateSuccessResponse(res, 200, user)
+
+        CreateSuccessResponse(res, 200, { message: "Đặt lại mật khẩu thành công" });
+
     } catch (error) {
-        next(error)
+        console.error('Reset password error:', error.message);
+        next(error);
     }
-})
+});
+
 //storage
 let avatarDir = path.join(__dirname, "../avatars");
 let authURL = "http://localhost:3000/auth/avatars/";

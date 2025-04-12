@@ -14,7 +14,7 @@ const constants = require('../utils/constants');
 router.get('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), getAllProducts);
 
 // Lấy thông tin chi tiết sản phẩm
-router.get('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), getProductById);
+router.get('/:id', check_authentication, getProductById);
 
 // Tạo sản phẩm mới
 router.post('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), createProduct);
