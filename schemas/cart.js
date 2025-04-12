@@ -17,7 +17,7 @@ const cartItemSchema = mongoose.Schema({
     },
     isChoosed: {
         type: Boolean,
-        default: true 
+        default: true
     }
 }, {
     timestamps: true 
