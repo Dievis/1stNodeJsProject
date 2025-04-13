@@ -1,3 +1,4 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\categories.pug
 extends ../admin/layout
 
 block content
@@ -43,7 +44,7 @@ block content
           form#addCategoryForm
             .form-group
               label(for="name") Tên danh mục
-              input.form-control(type="text", id="name", required)
+              input.form-control(type="text", id="name", name="name", required)
             .form-group
               label(for="description") Mô tả
               textarea.form-control(name="description", rows="4", placeholder="Nhập mô tả danh mục")
@@ -60,8 +61,9 @@ block content
           button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
             span(aria-hidden="true") &times;
         .modal-body
+          //- Input ẩn để lưu ID danh mục
           form#editCategoryForm
-            input(type="hidden", name="id") 
+            input(type="hidden", name="id")
             .form-group
               label(for="name") Tên danh mục
               input.form-control(type="text", name="name", required)
@@ -70,7 +72,7 @@ block content
               textarea.form-control(name="description", rows="4", placeholder="Nhập mô tả danh mục")
         .modal-footer
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
-          button.btn.btn-primary(type="submit") Lưu thay đổi
+          button.btn.btn-primary(type="submit", form="editCategoryForm") Lưu thay đổi
 
 block scripts
   script.
@@ -79,14 +81,12 @@ block scripts
       document.querySelectorAll('.delete-category').forEach(button => {
         button.addEventListener('click', async (e) => {
           const row = e.target.closest('tr');
-          const categoryId = row.getAttribute('data-id'); // Lấy ID từ thuộc tính data-id
+          const categoryId = row.getAttribute('data-id');
           if (confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
             try {
-              const response = await fetch(`/categories/${categoryId}`, { // Đảm bảo URL đúng
+              const response = await fetch(`/categories/${categoryId}`, {
                 method: 'DELETE',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
               });
               const result = await response.json();
               if (result.success) {
@@ -103,47 +103,42 @@ block scripts
         });
       });
 
-      // Sửa danh mục
+      // Sửa danh mục: Điền dữ liệu vào modal chỉnh sửa
       document.querySelectorAll('.edit-category').forEach(button => {
         button.addEventListener('click', (e) => {
           const row = e.target.closest('tr');
           const categoryId = row.getAttribute('data-id');
           const name = row.children[0].innerText;
           const description = row.children[1].innerText;
-
-          // Điền thông tin vào modal
           const form = document.querySelector('#editCategoryForm');
           form.querySelector('[name="id"]').value = categoryId;
           form.querySelector('[name="name"]').value = name;
           form.querySelector('[name="description"]').value = description;
-
-          // Hiển thị modal
           $('#editCategoryModal').modal('show');
         });
       });
 
-      // Gửi yêu cầu cập nhật danh mục
+      // Cập nhật danh mục: thêm log để debug
       document.querySelector('#editCategoryForm').addEventListener('submit', async (e) => {
-        e.preventDefault(); // Ngăn chặn hành vi mặc định của form
+        e.preventDefault();
+        console.log('Submit cập nhật danh mục');
         const form = e.target;
-        const categoryId = form.querySelector('[name="id"]').value; // Lấy ID danh mục từ input ẩn
-        const body = {
-          name: form.querySelector('[name="name"]').value,
-          description: form.querySelector('[name="description"]').value
-        };
+        const categoryId = form.querySelector('[name="id"]').value;
+        const nameVal = form.querySelector('[name="name"]').value;
+        const descriptionVal = form.querySelector('[name="description"]').value;
+        console.log('ID:', categoryId, 'Name:', nameVal, 'Description:', descriptionVal);
 
         try {
           const response = await fetch(`/categories/${categoryId}`, {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: nameVal, description: descriptionVal })
           });
           const result = await response.json();
+          console.log('Kết quả cập nhật:', result);
           if (result.success) {
             alert('Cập nhật danh mục thành công!');
-            location.reload(); // Tải lại trang
+            location.reload();
           } else {
             alert('Cập nhật danh mục thất bại: ' + result.message);
           }
@@ -155,34 +150,28 @@ block scripts
 
       // Thêm danh mục
       document.querySelector('#addCategoryForm').addEventListener('submit', async (e) => {
-        e.preventDefault(); // Ngăn chặn hành vi mặc định của form
-        console.log('Form submitted'); // Log để kiểm tra sự kiện submit
+        e.preventDefault();
         const form = e.target;
         const body = {
-            name: form.querySelector('#name').value,
-            description: form.querySelector('textarea[name="description"]').value
+          name: form.querySelector('[name="name"]').value,
+          description: form.querySelector('[name="description"]').value
         };
-
         try {
-            const response = await fetch('/categories', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-            const result = await response.json();
-            if (result.success) {
-                alert('Thêm danh mục thành công!');
-                location.reload(); // Tải lại trang
-            } else {
-                alert('Thêm danh mục thất bại: ' + result.message);
-            }
+          const response = await fetch('/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Thêm danh mục thành công!');
+            location.reload();
+          } else {
+            alert('Thêm danh mục thất bại: ' + result.message);
+          }
         } catch (error) {
-            console.error('Error adding category:', error);
-            alert('Đã xảy ra lỗi khi thêm danh mục.');
+          console.error('Error adding category:', error);
+          alert('Đã xảy ra lỗi khi thêm danh mục.');
         }
       });
     });
-
-

@@ -98,4 +98,13 @@ app.use(function (err, req, res, next) {
   res.render('error', { error: err });
 });
 
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500);
+    res.render('shared/error', {
+        message: err.message,
+        error: req.app.get('env') === 'development' ? err : {}
+    });
+});
+
 module.exports = app;
