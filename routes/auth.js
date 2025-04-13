@@ -5,7 +5,7 @@ var userController = require('../controllers/users');
 var menuController = require('../controllers/menus');
 let userSchema = require('../schemas/user'); 
 let bcrypt = require('bcrypt');
-let { CreateSuccessResponse, CreateCookieResponse } = require('../utils/responseHandler')
+let { CreateSuccessResponse, CreateCookieResponse, CreateErrorResponse } = require('../utils/responseHandler')
 let jwt = require('jsonwebtoken')
 let constants = require('../utils/constants')
 let { check_authentication } = require('../utils/check_auth')
@@ -58,7 +58,7 @@ router.get('/forgotpassword', async function (req, res) {
     });
 });
 router.get('/resetpassword/:token', async function (req, res) {
-    res.render('resetPassword', { token: req.params.token });
+    res.render('shared/resetPassword', { token: req.params.token });
 });
 
 // ======== API ========
@@ -191,16 +191,42 @@ router.post('/forgotpassword', ForgotPasswordValidator, validate, async function
         
         await mailer.sendMailForgotPassword(user.email, resetUrl);
         
-        CreateSuccessResponse(res, 200, { message: "Email đặt lại mật khẩu đã được gửi.", resetUrl });
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return CreateSuccessResponse(res, 200, { message: "Email đặt lại mật khẩu đã được gửi.", resetUrl });
+        } else {
+            return res.render('shared/forgotPassword', {
+                title: 'Forgot Password',
+                success: 'Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.'
+            });
+        }
     } catch (error) {
-        next(error)
+        console.error('Forgot password error:', error.message);
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return CreateErrorResponse(res, 500, "Đã xảy ra lỗi khi gửi email đặt lại mật khẩu.");
+        } else {
+            return res.render('shared/forgotPassword', {
+                title: 'Forgot Password',
+                error: 'Đã xảy ra lỗi khi gửi email đặt lại mật khẩu.'
+            });
+        }
     }
-})
+});
 
 router.post('/resetpassword/:token', async function (req, res, next) {
     try {
         let token = req.params.token;
-        let password = req.body.password;
+        let password = req.body.newpassword;
+
+        if (!password) {
+            if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+                return CreateErrorResponse(res, 400, "Mật khẩu mới không được để trống");
+            } else {
+                return res.render('shared/resetPassword', {
+                    token: token,
+                    error: "Mật khẩu mới không được để trống"
+                });
+            }
+        }
 
         let user = await userSchema.findOne({
             resetPasswordToken: token,
@@ -208,20 +234,40 @@ router.post('/resetpassword/:token', async function (req, res, next) {
         });
 
         if (!user) {
-            return CreateErrorResponse(res, 400, "Token không hợp lệ hoặc đã hết hạn");
+            if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+                return CreateErrorResponse(res, 400, "Token không hợp lệ hoặc đã hết hạn");
+            } else {
+                return res.render('shared/resetPassword', {
+                    token: token,
+                    error: "Token không hợp lệ hoặc đã hết hạn"
+                });
+            }
         }
 
         // Cập nhật mật khẩu mới
-        user.password = bcrypt.hashSync(password, 10);
+        user.password = await bcrypt.hash(password, 10);
         user.resetPasswordToken = null;
         user.resetPasswordTokenExp = null;
         await user.save();
 
-        CreateSuccessResponse(res, 200, { message: "Đặt lại mật khẩu thành công" });
-
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return CreateSuccessResponse(res, 200, { message: "Đặt lại mật khẩu thành công" });
+        } else {
+            return res.render('user/resetPassword', {
+                token: token,
+                success: "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập bằng mật khẩu mới."
+            });
+        }
     } catch (error) {
         console.error('Reset password error:', error.message);
-        next(error);
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            return CreateErrorResponse(res, 500, "Đã xảy ra lỗi khi đặt lại mật khẩu.");
+        } else {
+            return res.render('user/resetPassword', {
+                token: token,
+                error: "Đã xảy ra lỗi khi đặt lại mật khẩu."
+            });
+        }
     }
 });
 
