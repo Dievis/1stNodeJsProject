@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
 let constants = require("./utils/constants");
+let { CreateErrorResponse } = require('./utils/responseHandler');
 let cors = require('cors');
 const jwt = require('jsonwebtoken');
 const userController = require('./controllers/users');
@@ -12,7 +13,6 @@ const userController = require('./controllers/users');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var adminRouter = require('./routes/admin');
-
 
 var app = express();
 
@@ -77,6 +77,7 @@ app.use('/favorites', require('./routes/favorites'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/vouchers', require('./routes/vouchers'));
 app.use('/carts', require('./routes/carts'));
+app.use('/payments', require('./routes/payments'));
 
 
 // catch 404 and forward to error handler
