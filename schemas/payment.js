@@ -47,7 +47,11 @@ const paymentSchema = mongoose.Schema({
     totalPrice: {
         type: Number,
         default: 0 // Tổng giá trị sau khi giảm
-    }
+    },
+    vouchers: [{ // Mảng các voucher được sử dụng
+        type: mongoose.Types.ObjectId,
+        ref: 'voucher' // Tham chiếu đến schema voucher
+    }]
 }, {
     timestamps: true // Tự động thêm createdAt và updatedAt
 });
