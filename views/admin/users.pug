@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\users.pug
+
 extends ../admin/layout
 
 block content
@@ -83,9 +85,9 @@ block content
               select.form-control(name="role", required)
                 option(value="admin") Admin
                 option(value="user") User
-        .modal-footer
-          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
-          button.btn.btn-primary(type="submit") Lưu thay đổi
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-primary(type="submit") Lưu thay đổi
 
 block scripts
   script.
@@ -97,7 +99,7 @@ block scripts
           const userId = row.getAttribute('data-id');
           if (confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
             try {
-              const response = await fetch(`/admin/users/${userId}`, {
+              const response = await fetch(`/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
                   'Content-Type': 'application/json'
@@ -151,7 +153,7 @@ block scripts
         };
 
         try {
-          const response = await fetch('/admin/users', {
+          const response = await fetch('/users', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -183,7 +185,7 @@ block scripts
         };
 
         try {
-          const response = await fetch(`/admin/users/${userId}`, {
+          const response = await fetch(`/users/${userId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json'

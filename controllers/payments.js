@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\payments.js
+
 const Payment = require('../schemas/payment');
 const Cart = require('../schemas/cart');
 

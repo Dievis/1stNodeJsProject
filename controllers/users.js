@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\users.js
+
 let userSchema = require('../schemas/user');
 let roleSchema = require('../schemas/role');
 const jwt = require('jsonwebtoken');
@@ -38,7 +40,7 @@ module.exports = {
         let roleObj = await roleSchema.findOne({ name: role }); // Tìm role theo tên
         if (roleObj) {
             // Hash mật khẩu
-            let hashedPassword = bcrypt.hash(password, 10); // 10 là số vòng lặp để mã hóa
+            let hashedPassword = await bcrypt.hash(password, 10); // 10 là số vòng lặp để mã hóa
             let newUser = new userSchema({
                 username: username,
                 password: hashedPassword, // Lưu mật khẩu đã mã hóa
@@ -56,22 +58,47 @@ module.exports = {
   },
 
   // Cập nhật người dùng
-  UpdateAnUser: async function (id, body) {
-    let allowField = ["password", "email", "imgURL"];
-    let getUser = await userSchema.findById(id);
-    if (!getUser) {
-      throw new Error('Người dùng không tồn tại');
-    }
-    for (const key of Object.keys(body)) {
-      if (allowField.includes(key)) {
-        if (key === "password") {
-          getUser[key] = bcrypt.hashSync(body[key], 10); // Hash password nếu được cập nhật
-        } else {
-          getUser[key] = body[key];
+  UpdateAnUser: async function (id, body, currentUser) {
+    try {
+        const getUser = await userSchema.findById(id);
+        if (!getUser) {
+            throw new Error('Người dùng không tồn tại');
         }
-      }
+
+        // Nếu là admin, chỉ được phép cập nhật quyền (role)
+        if (currentUser.role.name === 'admin') {
+            if (!body.role) {
+                throw new Error('Trường role là bắt buộc.');
+            }
+
+            const roleObj = await roleSchema.findOne({ name: body.role });
+            if (!roleObj) {
+                throw new Error('Role không tồn tại.');
+            }
+
+            getUser.role = roleObj._id; // Cập nhật quyền
+        } 
+        // Nếu là user, chỉ được phép cập nhật email, mật khẩu, hoặc ảnh
+        else if (currentUser._id.toString() === id) {
+            const allowFields = ['email', 'password', 'imgURL'];
+            for (const key of Object.keys(body)) {
+                if (allowFields.includes(key)) {
+                    if (key === 'password') {
+                        getUser.password = bcrypt.hashSync(body[key], 10); // Hash mật khẩu
+                    } else {
+                        getUser[key] = body[key];
+                    }
+                }
+            }
+        } else {
+            throw new Error('Bạn không có quyền cập nhật thông tin người dùng này.');
+        }
+
+        return await getUser.save();
+    } catch (error) {
+        console.error('Error updating user:', error.message);
+        throw new Error(error.message);
     }
-    return await getUser.save();
   },
 
   // Xóa người dùng (xóa mềm)
@@ -115,7 +142,7 @@ module.exports = {
   // Đổi mật khẩu
   Change_Password: async function (user, oldpassword, newpassword) {
     if (bcrypt.compareSync(oldpassword, user.password)) {
-      user.password = bcrypt.hashSync(newpassword, 10); // Hash mật khẩu mới
+      user.password = await bcrypt.hash(newpassword, 10); // Hash mật khẩu mới
       await user.save();
     } else {
       throw new Error("Mật khẩu cũ không đúng");

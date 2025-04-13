@@ -33,13 +33,14 @@ router.post('/', async function (req, res, next) {
     CreateErrorResponse(res, 404, error.message)
   }
 });
-router.put('/:id', async function (req, res, next) {
+router.put('/:id', check_authentication, async function (req, res, next) {
   try {
-    let body = req.body;
-    let updatedResult = await userController.UpdateAnUser(req.params.id, body);
-    CreateSuccessResponse(res, 200, updatedResult)
+    const currentUser = req.user; // Lấy thông tin người dùng hiện tại từ middleware
+    const updatedUser = await userController.UpdateAnUser(req.params.id, req.body, currentUser);
+    res.status(200).json({ success: true, data: updatedUser });
   } catch (error) {
-    next(error)
+    console.error('Error updating user:', error.message);
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 router.delete('/:id', check_authentication, check_authorization(constants.MOD_PERMISSION), async function (req, res, next) {

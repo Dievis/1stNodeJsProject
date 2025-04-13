@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\layout.pug
+
 doctype html
 html
   head
@@ -45,24 +47,36 @@ html
       ul.nav.nav-pills.flex-column
         li.nav-item
           a.nav-link(class=(activeRoute === '/admin/dashboard' ? 'active' : ''))(href='/admin/dashboard')
-            i.fas.fa-tachometer-alt.me-2
+            i.fas.fa-home.me-2
             | Dashboard
         li.nav-item
+          a.nav-link(class=(activeRoute === '/menus' ? 'active' : ''))(href='/menus')
+            i.fas.fa-bars.me-2
+            | Menus
+        li.nav-item
           a.nav-link(class=(activeRoute === '/products' ? 'active' : ''))(href='/products')
-            i.fas.fa-boxes.me-2
+            i.fas.fa-box-open.me-2
             | Products
         li.nav-item
           a.nav-link(class=(activeRoute === '/categories' ? 'active' : ''))(href='/categories')
-            i.fas.fa-tags.me-2
+            i.fas.fa-th-list.me-2
             | Categories
         li.nav-item
+          a.nav-link(class=(activeRoute === '/roles' ? 'active' : ''))(href='/roles')
+            i.fas.fa-user-shield.me-2
+            | Roles
+        li.nav-item
           a.nav-link(class=(activeRoute === '/users' ? 'active' : ''))(href='/users')
-            i.fas.fa-users.me-2
+            i.fas.fa-user-friends.me-2
             | Users
         li.nav-item
-          a.nav-link(class=(activeRoute === '/orders' ? 'active' : ''))(href='/orders')
-            i.fas.fa-shopping-cart.me-2
-            | Orders
+          a.nav-link(class=(activeRoute === '/reviews' ? 'active' : ''))(href='/reviews')
+            i.fas.fa-star.me-2
+            | Reviews
+        li.nav-item
+          a.nav-link(class=(activeRoute === '/vouchers' ? 'active' : ''))(href='/vouchers')
+            i.fas.fa-ticket-alt.me-2
+            | Vouchers
         li.nav-item
           form(action='/auth/logout', method='POST', class='d-inline')
             button.btn.btn-link.text-white.nav-link(type='submit') 

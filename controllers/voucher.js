@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\voucher.js
+
 const Voucher = require('../schemas/voucher');
 
 // Lấy danh sách tất cả các voucher

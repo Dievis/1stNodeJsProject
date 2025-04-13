@@ -1,13 +1,37 @@
 //- filepath: d:\Github\TPD\1stNodeJsProject\routes\menus.js
 
-var express = require('express');
-var router = express.Router();
-var menuController = require('../controllers/menus');
-let { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseHandler');
-let { check_authentication, check_authorization } = require('../utils/check_auth');
-let constants = require('../utils/constants');
+const express = require('express');
+const router = express.Router();
+const menuController = require('../controllers/menus');
+const { check_authentication, check_authorization } = require('../utils/check_auth');
+const constants = require('../utils/constants');
+const { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseHandler');
 
-router.get('/', check_authentication, check_authorization, async function (req, res, next) {
+// Route để render danh sách menu
+router.get('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), menuController.GetMenusForAdmin);
+
+// Route để render giao diện chỉnh sửa menu
+router.get('/edit/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async (req, res) => {
+    try {
+        const menu = await menuController.GetMenuById(req.params.id); // Lấy thông tin menu theo ID
+        const menus = await menuController.GetMenusForAdmin(); // Lấy danh sách menu để chọn menu cha
+        res.render('admin/editMenu', {
+            title: 'Chỉnh sửa Menu',
+            menu: menu,
+            menus: menus,
+            user: req.user
+        });
+    } catch (error) {
+        console.error('Error fetching menu for edit:', error.message);
+        res.status(500).render('error', {
+            title: 'Error',
+            message: 'Lỗi khi lấy thông tin menu.',
+            error: req.app.get('env') === 'development' ? error : {}
+        });
+    }
+});
+
+router.get('/', check_authentication, async function (req, res, next) {
     try {
         let result = await menuController.GetAllMenus();
         CreateSuccessResponse(res, 200, result);
@@ -27,7 +51,7 @@ router.post('/', check_authentication, check_authorization(constants.ADMIN_PERMI
 
 router.put('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async function (req, res, next) {
     try {
-        let updatedMenu = await menuController.UpdateMenu(req.params.id, req.body);
+        const updatedMenu = await menuController.UpdateMenu(req.params.id, req.body);
         CreateSuccessResponse(res, 200, updatedMenu);
     } catch (error) {
         CreateErrorResponse(res, 404, error.message);
