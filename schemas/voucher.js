@@ -5,6 +5,7 @@ const voucherSchema = new mongoose.Schema({
     name: { type: String, required: true },
     code: { type: String, required: true, unique: true },
     discountPercentage: { type: Number, required: true, min: 0, max: 100 },
+    maximumDiscount: { type: Number, required: true, min: 0 }, // Số tiền giảm tối đa
     expirationDate: { type: Date, required: true },
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });

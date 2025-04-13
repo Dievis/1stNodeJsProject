@@ -13,13 +13,14 @@ const getAllVouchers = async (req, res) => {
 // Thêm voucher
 const addVoucher = async (req, res) => {
     try {
-        const { name, code, discountPercentage, expirationDate } = req.body;
+        const { name, code, discountPercentage, maximumDiscount, expirationDate } = req.body;
 
         // Tạo một voucher mới
         const newVoucher = new Voucher({
             name,
             code,
             discountPercentage,
+            maximumDiscount, // Thêm maximumDiscount
             expirationDate
         });
 
@@ -51,12 +52,12 @@ const deleteVoucher = async (req, res) => {
 const updateVoucher = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, code, discountPercentage, expirationDate, isActive } = req.body;
+        const { name, code, discountPercentage, maximumDiscount, expirationDate, isActive } = req.body;
 
         // Cập nhật voucher
         const updatedVoucher = await Voucher.findByIdAndUpdate(
             id,
-            { name, code, discountPercentage, expirationDate, isActive },
+            { name, code, discountPercentage, maximumDiscount, expirationDate, isActive }, // Thêm maximumDiscount
             { new: true, runValidators: true }
         );
 
@@ -70,6 +71,7 @@ const updateVoucher = async (req, res) => {
     }
 };
 
+// Lấy danh sách voucher chưa sử dụng
 const getAvailableVouchers = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -90,6 +92,7 @@ const getAvailableVouchers = async (req, res) => {
     }
 };
 
+// Đánh dấu voucher là đã sử dụng
 const redeemVoucher = async (req, res) => {
     try {
         const { userId, voucherId } = req.body;
@@ -104,13 +107,6 @@ const redeemVoucher = async (req, res) => {
         const alreadyRedeemed = await RedeemedVoucher.findOne({ user: userId, voucher: voucherId });
         if (alreadyRedeemed) {
             return res.status(400).json({ message: 'Voucher already redeemed' });
-        }
-
-        // Kiểm tra xem người dùng đã có danh sách voucher đã sử dụng chưa
-        let redeemedVouchers = await RedeemedVoucher.find({ user: userId });
-        if (redeemedVouchers.length === 0) {
-            // Tạo danh sách voucher đã sử dụng (trống) cho người dùng
-            redeemedVouchers = [];
         }
 
         // Tạo bản ghi voucher đã sử dụng
@@ -128,14 +124,14 @@ const redeemVoucher = async (req, res) => {
     }
 };
 
+// Lấy danh sách voucher đã sử dụng
 const getRedeemedVouchers = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        // Kiểm tra xem người dùng đã có danh sách voucher đã sử dụng chưa
-        let redeemedVouchers = await RedeemedVoucher.find({ user: userId }).populate('voucher');
+        // Lấy danh sách voucher đã sử dụng của người dùng
+        const redeemedVouchers = await RedeemedVoucher.find({ user: userId }).populate('voucher');
 
-        // Trả về danh sách voucher đã sử dụng
         res.status(200).json(redeemedVouchers);
     } catch (error) {
         res.status(500).json({ error: error.message });

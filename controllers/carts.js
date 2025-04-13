@@ -77,7 +77,7 @@ exports.updateCartItem = async (req, res) => {
             item.isChoosed = isChoosed;
         }
         cart.totalPrice = cart.items.reduce((total, item) => {
-            return total + (item.price * item.quantity );
+            return total + (item.price * item.quantity);
         }, 0);
 
         await cart.save();
@@ -100,7 +100,7 @@ exports.deleteCartItem = async (req, res) => {
         cart.items = cart.items.filter(item => item.product.toString() !== productId);
 
         cart.totalPrice = cart.items.reduce((total, item) => {
-            return total + (item.price * item.quantity * (1 - item.discount / 100));
+            return total + (item.price * item.quantity);
         }, 0);
 
         await cart.save();
