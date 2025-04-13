@@ -1,0 +1,48 @@
+extends layout
+
+block content
+  h1 Danh sách yêu thích
+
+  if favorites.length > 0
+    .favorites-container
+      each favorite in favorites
+        .favorite-item(data-id=favorite.product._id)
+          img(src=favorite.product.imgURL alt=favorite.product.name)
+          .product-info
+            h2= favorite.product.name
+            p Giá: #{favorite.product.price} VND
+            p Mô tả: #{favorite.product.description}
+          .actions
+            button.btn.btn-danger(type="button", onclick=`removeFavorite('${favorite.product._id}')`) Xóa khỏi yêu thích
+  else
+    p Không có sản phẩm nào trong danh sách yêu thích.
+
+block scripts
+  script.
+    async function removeFavorite(productId) {
+      try {
+        const response = await fetch(`/favorites/${productId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          // Xóa sản phẩm khỏi giao diện
+          const favoriteItem = document.querySelector(`.favorite-item[data-id="${productId}"]`);
+          favoriteItem.remove();
+
+          // Kiểm tra nếu không còn sản phẩm nào, hiển thị thông báo
+          const favoritesContainer = document.querySelector('.favorites-container');
+          if (favoritesContainer.children.length === 0) {
+            favoritesContainer.innerHTML = '<p>Không có sản phẩm nào trong danh sách yêu thích.</p>';
+          }
+        } else {
+          const result = await response.json();
+          console.error('Error:', result.message);
+          alert('Không thể xóa sản phẩm khỏi danh sách yêu thích.');
+        }
+      } catch (error) {
+        console.error('Error removing favorite:', error);
+        alert('Đã xảy ra lỗi khi xóa sản phẩm khỏi danh sách yêu thích.');
+      }
+    }

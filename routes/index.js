@@ -5,6 +5,7 @@ var router = express.Router();
 var menuController = require('../controllers/menus');
 let productSchema = require('../schemas/product');
 let { check_authentication } = require('../utils/check_auth');
+const FavoriteModel = require('../schemas/favorite'); 
 
 
 /* GET home page. */
@@ -16,12 +17,20 @@ router.get('/', check_authentication,async function (req, res, next) {
         let products = await productSchema.find({ isDeleted: false }).populate(
             { path: 'category', select: 'name' }
         );
+
+        let userFavorites = [];
+        if (req.user) {
+            const favorites = await FavoriteModel.find({ user: req.user._id }).populate('product');
+            userFavorites = favorites.map(fav => fav.product._id.toString());
+        }
+
         console.log('Products:', products); // Log danh sách sản phẩm
 
         res.render('user/index', {
             title: 'Home Consumer Products',
             menus: menus,
             products: products,
+            userFavorites: userFavorites,
             user: res.locals.user // Truyền thông tin user vào giao diện
         });
     } catch (error) {

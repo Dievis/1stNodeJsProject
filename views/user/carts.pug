@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  h1.text-center.mt-4 Giỏ hàng của bạn
+
+  if cartItems.length > 0
+    .cart-container
+      each item in cartItems
+        .cart-item
+          img(src=item.product.imgURL alt=item.product.name)
+          .product-info
+            h2= item.product.name
+            p Giá: #{item.product.price} VND
+            p Số lượng: #{item.quantity}
+            p Tổng: #{(item.product.price * item.quantity * (1 - (item.product.discount || 0) / 100)).toFixed(2)} VND
+          .actions
+            form(method="POST" action=`/carts/remove/${item.product._id}`)
+              button.btn.btn-danger(type="submit") Xóa khỏi giỏ hàng
+    .cart-summary
+      h3 Tổng giá trị giỏ hàng: #{totalPrice.toFixed(2)} VND
+      form(method="POST" action="/checkout")
+        button.btn.btn-success(type="submit") Thanh toán
+  else
+    p.text-center.mt-4 Không có sản phẩm nào trong giỏ hàng.

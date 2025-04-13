@@ -2,6 +2,8 @@ const productSchema = require('../schemas/product');
 const categorySchema = require('../schemas/category');
 const slugify = require('slugify');
 
+
+
 // Lấy danh sách sản phẩm
 exports.getAllProducts = async (req, res) => {
     let query = req.query;

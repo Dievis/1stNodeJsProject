@@ -27,4 +27,5 @@ router.put('/:id', check_authentication, check_authorization(constants.ADMIN_PER
 // Xóa sản phẩm
 router.delete('/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), deleteProduct);
 
+
 module.exports = router;
