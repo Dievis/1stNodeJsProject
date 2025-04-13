@@ -44,9 +44,12 @@ block content
             .form-group
               label(for="name") Tên danh mục
               input.form-control(type="text", id="name", required)
-        .modal-footer
-          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
-          button.btn.btn-success(type="submit") Thêm mới
+            .form-group
+              label(for="description") Mô tả
+              textarea.form-control(name="description", rows="4", placeholder="Nhập mô tả danh mục")
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-success(type="submit") Thêm mới
 
   // Modal for editing category
   .modal#editCategoryModal(tabindex="-1" role="dialog")
@@ -58,7 +61,7 @@ block content
             span(aria-hidden="true") &times;
         .modal-body
           form#editCategoryForm
-            input(type="hidden", name="id")
+            input(type="hidden", name="id") 
             .form-group
               label(for="name") Tên danh mục
               input.form-control(type="text", name="name", required)
@@ -110,9 +113,9 @@ block scripts
 
           // Điền thông tin vào modal
           const form = document.querySelector('#editCategoryForm');
-          form.id.value = categoryId;
-          form.name.value = name;
-          form.description.value = description;
+          form.querySelector('[name="id"]').value = categoryId;
+          form.querySelector('[name="name"]').value = name;
+          form.querySelector('[name="description"]').value = description;
 
           // Hiển thị modal
           $('#editCategoryModal').modal('show');
@@ -121,12 +124,12 @@ block scripts
 
       // Gửi yêu cầu cập nhật danh mục
       document.querySelector('#editCategoryForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Ngăn chặn hành vi mặc định của form
         const form = e.target;
-        const categoryId = form.id.value;
+        const categoryId = form.querySelector('[name="id"]').value; // Lấy ID danh mục từ input ẩn
         const body = {
-          name: form.name.value,
-          description: form.description.value
+          name: form.querySelector('[name="name"]').value,
+          description: form.querySelector('[name="description"]').value
         };
 
         try {
@@ -152,34 +155,34 @@ block scripts
 
       // Thêm danh mục
       document.querySelector('#addCategoryForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Ngăn chặn hành vi mặc định của form
         console.log('Form submitted'); // Log để kiểm tra sự kiện submit
         const form = e.target;
         const body = {
-          name: form.name.value,
-          description: form.description.value
+            name: form.querySelector('#name').value,
+            description: form.querySelector('textarea[name="description"]').value
         };
 
         try {
-          const response = await fetch('/categories', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-          });
-          const result = await response.json();
-          if (result.success) {
-            alert('Thêm danh mục thành công!');
-            location.reload(); // Tải lại trang
-          } else {
-            alert('Thêm danh mục thất bại: ' + result.message);
-          }
+            const response = await fetch('/categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('Thêm danh mục thành công!');
+                location.reload(); // Tải lại trang
+            } else {
+                alert('Thêm danh mục thất bại: ' + result.message);
+            }
         } catch (error) {
-          console.error('Error adding category:', error);
-          alert('Đã xảy ra lỗi khi thêm danh mục.');
+            console.error('Error adding category:', error);
+            alert('Đã xảy ra lỗi khi thêm danh mục.');
         }
       });
     });
 
-    
+
