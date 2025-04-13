@@ -111,7 +111,7 @@ exports.addToCart = async (req, res) => {
 exports.updateCartItem = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { productId, quantity } = req.body;
+        const { productId, quantity, isChoosed } = req.body;
 
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
@@ -123,10 +123,15 @@ exports.updateCartItem = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Product not found in cart' });
         }
 
-        item.quantity = quantity;
+        if (quantity !== undefined) {
+            item.quantity = quantity;
+        }
 
+        if (isChoosed !== undefined) {
+            item.isChoosed = isChoosed;
+        }
         cart.totalPrice = cart.items.reduce((total, item) => {
-            return total + (item.price * item.quantity * (1 - item.discount / 100));
+            return total + (item.price * item.quantity);
         }, 0);
 
         await cart.save();
@@ -150,7 +155,7 @@ exports.deleteCartItem = async (req, res) => {
         cart.items = cart.items.filter(item => item.product.toString() !== productId);
 
         cart.totalPrice = cart.items.reduce((total, item) => {
-            return total + (item.price * item.quantity * (1 - item.discount / 100));
+            return total + (item.price * item.quantity);
         }, 0);
 
         await cart.save();
