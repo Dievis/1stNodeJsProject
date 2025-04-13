@@ -1,7 +1,7 @@
 const productSchema = require('../schemas/product');
 const categorySchema = require('../schemas/category');
 const slugify = require('slugify');
-
+const { getReviewsByProduct } = require('./reviews'); // import nếu cần
 
 
 // Lấy danh sách sản phẩm
@@ -46,16 +46,24 @@ exports.getAllProducts = async (req, res) => {
 // Lấy thông tin chi tiết sản phẩm
 exports.getProductById = async (req, res) => {
     try {
-        let product = await productSchema.findById(req.params.id);
-        res.send({
-            success: true,
-            data: product
+        const productId = req.params.id; // Lấy productId từ URL
+        // Tìm sản phẩm trong cơ sở dữ liệu
+        const product = await productSchema.findById(productId).populate('category');
+
+        // Nếu không tìm thấy sản phẩm
+        if (!product) {
+            return res.status(404).send({ success: false, message: 'Sản phẩm không tồn tại.' });
+        }
+
+        // Trả về thông tin chi tiết sản phẩm
+        res.render('user/productDetail', { // Tạo view 'productDetail' và truyền product vào
+            title: `Chi tiết sản phẩm - ${product.name}`,
+            product: product,
+            user: req.user
         });
     } catch (error) {
-        res.status(404).send({
-            success: false,
-            message: error.message
-        });
+        console.error('Error fetching product:', error.message);
+        res.status(500).send({ success: false, message: 'Lỗi khi lấy thông tin sản phẩm.' });
     }
 };
 

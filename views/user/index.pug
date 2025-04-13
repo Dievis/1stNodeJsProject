@@ -1,33 +1,36 @@
 extends layout
 
 block content
-  section.hero.bg-primary.text-white.py-5
+  // Hero Section
+  section.hero.bg-primary.text-white.py-5.shadow
     .container.text-center
-      h1 Welcome to Home Consumer Products!
-      p.lead Find the best products for your home at unbeatable prices.
+      h1.display-4.mb-3 Welcome to Home Consumer Products!
+      p.lead.fs-5 Find the best products for your home at unbeatable prices.
 
-  section.products.py-5
+  // Products Section
+  section.products.bg-light.py-5
     .container
-      h2.text-center.mb-4 Featured Products
+      h2.text-center.mb-5.text-dark Featured Products
       if products.length > 0
-        .row.row-cols-1.row-cols-md-3.g-4
+        .row.row-cols-1.row-cols-sm-2.row-cols-md-3.g-4
           each product in products
             .col
-              .card.h-100.shadow-sm
-                .product-image
-                  img.card-img-top(src=product.imgURL, alt=product.name)
-                .card-body
-                  h5.card-title #{product.name}
+              .card.h-100.shadow.border-0.rounded-4.position-relative.hover-shadow
+                .product-image.position-relative.overflow-hidden.rounded-top
+                  img.card-img-top.object-fit-cover(style="height: 200px;", src=product.imgURL || 'https://via.placeholder.com/500x500', alt=product.name)
+                .card-body.bg-white
+                  h5.card-title.text-primary #{product.name}
                   p.card-text.text-muted Category: #{product.category ? product.category.name : 'Uncategorized'}
-                  p.card-text.text-success.font-weight-bold $#{product.price}
-                .card-footer.bg-transparent.border-0.text-center
-                  a.btn.btn-primary(href=`/products/${product._id}`) View Details
-                  button.btn.favorite-btn.bg-warning.ms-2(type='button', data-id=product._id, title='Add to favorites')
+                  p.card-text.fs-5.text-success.mt-2 $#{product.price}
+                .card-footer.bg-white.border-0.text-center
+                  // Link to product detail page
+                  a.btn.btn-outline-primary.rounded-pill(href=`/products/${product._id}`) View Details
+                  button.btn.favorite-btn.ms-2.rounded-circle.px-2.bg-warning.border-0(type='button', data-id=product._id, title='Add to favorites')
                     if userFavorites && userFavorites.includes(product._id.toString())
                       i.fas.fa-heart.text-danger 
                     else
                       i.far.fa-heart 
-                  button.btn.btn-success.ms-2.add-to-cart-btn(type='button', data-id=product._id, title='Add to cart')
+                  button.btn.btn-success.ms-2.rounded-circle.px-2.add-to-cart-btn(type='button', data-id=product._id, title='Add to cart')
                     i.fas.fa-plus 
       else
         p.text-center.text-muted No products available.
@@ -69,25 +72,24 @@ block scripts
       const cartButtons = document.querySelectorAll('.add-to-cart-btn');
       cartButtons.forEach(btn => {
         btn.addEventListener('click', async () => {
-          const productId = btn.getAttribute('data-id'); // Lấy ID sản phẩm từ thuộc tính `data-id`
+          const productId = btn.getAttribute('data-id');
 
           try {
             const response = await fetch('/carts/add', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ productId, quantity: 1 }) // Gửi productId và số lượng
+              body: JSON.stringify({ productId, quantity: 1 })
             });
 
             if (response.ok) {
-              alert('Sản phẩm đã được thêm vào giỏ hàng!');
+              alert('🛒 Sản phẩm đã được thêm vào giỏ hàng!');
             } else {
               const result = await response.json();
-              console.error('Error:', result.message);
-              alert('Không thể thêm sản phẩm vào giỏ hàng.');
+              alert('❌ Không thể thêm sản phẩm vào giỏ hàng: ' + result.message);
             }
           } catch (error) {
             console.error('Error adding to cart:', error);
-            alert('Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.');
+            alert('⚠️ Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.');
           }
         });
       });

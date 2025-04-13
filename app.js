@@ -101,7 +101,7 @@ app.use(function (err, req, res, next) {
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.status || 500);
-    res.render('shared/error', {
+    res.render('error', {
         message: err.message,
         error: req.app.get('env') === 'development' ? err : {}
     });
