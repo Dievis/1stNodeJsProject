@@ -76,6 +76,7 @@ app.use('/favorites', require('./routes/favorites'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/vouchers', require('./routes/vouchers'));
 app.use('/carts', require('./routes/carts'));
+app.use('/payments', require('./routes/payments'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
