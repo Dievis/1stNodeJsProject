@@ -9,6 +9,8 @@ let { CreateErrorResponse } = require('./utils/responseHandler');
 let cors = require('cors');
 const jwt = require('jsonwebtoken');
 const userController = require('./controllers/users');
+let {createErrorResponse} = require('./utils/responseHandler');
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -92,7 +94,8 @@ app.use(function (err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
-  CreateErrorResponse(res, err.status || 500, err.message);
+  res.status(err.status || 500);
+  res.render('error', { error: err });
 });
 
 module.exports = app;
