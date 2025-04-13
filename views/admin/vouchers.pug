@@ -1,0 +1,205 @@
+extends ../admin/layout
+
+block content
+  .container.mt-5
+    h1.text-center.mb-4 Quản lý Voucher
+
+    // Nút thêm voucher
+    .d-flex.justify-content-between.mb-3
+      button.btn.btn-primary(data-bs-toggle="modal", data-bs-target="#addVoucherModal")
+        i.fas.fa-plus-circle.me-2
+        | Thêm Voucher
+
+    // Bảng danh sách voucher
+    if vouchers && vouchers.length > 0
+      .table-responsive
+        table.table.table-striped.table-hover
+          thead
+            tr
+              th Tên Voucher
+              th Mã
+              th Giảm giá (%)
+              th Giảm tối đa
+              th Ngày hết hạn
+              th Trạng thái
+              th Hành động
+          tbody
+            each voucher in vouchers
+              tr(data-id=voucher._id)
+                td= voucher.name
+                td= voucher.code
+                td= voucher.discountPercentage
+                td= voucher.maximumDiscount
+                td= voucher.expirationDate.toLocaleDateString()
+                td= voucher.isActive ? 'Hoạt động' : 'Không hoạt động'
+                td
+                  button.btn.btn-sm.btn-warning.me-2.edit-voucher-btn(data-bs-toggle="modal", data-bs-target="#editVoucherModal", data-id=voucher._id) Sửa
+                  button.btn.btn-sm.btn-danger.delete-voucher-btn(data-id=voucher._id) Xóa
+    else
+      p.text-center.text-muted Không có voucher nào.
+
+  // Modal thêm voucher
+  .modal#addVoucherModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Thêm Voucher
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#addVoucherForm
+            .form-group
+              label(for="name") Tên Voucher
+              input.form-control(type="text", name="name", required)
+            .form-group
+              label(for="code") Mã Voucher
+              input.form-control(type="text", name="code", required)
+            .form-group
+              label(for="discountPercentage") Giảm giá (%)
+              input.form-control(type="number", name="discountPercentage", min="0", max="100", required)
+            .form-group
+              label(for="maximumDiscount") Giảm tối đa
+              input.form-control(type="number", name="maximumDiscount", min="0", required)
+            .form-group
+              label(for="expirationDate") Ngày hết hạn
+              input.form-control(type="date", name="expirationDate", required)
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-primary(type="submit") Thêm Voucher
+
+  // Modal sửa voucher
+  .modal#editVoucherModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Sửa Voucher
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#editVoucherForm
+            input(type="hidden", name="id")
+            .form-group
+              label(for="name") Tên Voucher
+              input.form-control(type="text", name="name", required)
+            .form-group
+              label(for="code") Mã Voucher
+              input.form-control(type="text", name="code", required)
+            .form-group
+              label(for="discountPercentage") Giảm giá (%)
+              input.form-control(type="number", name="discountPercentage", min="0", max="100", required)
+            .form-group
+              label(for="maximumDiscount") Giảm tối đa
+              input.form-control(type="number", name="maximumDiscount", min="0", required)
+            .form-group
+              label(for="expirationDate") Ngày hết hạn
+              input.form-control(type="date", name="expirationDate", required)
+            .form-group
+              label(for="isActive") Trạng thái
+              select.form-control(name="isActive", required)
+                option(value="true") Hoạt động
+                option(value="false") Không hoạt động
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-primary(type="submit") Lưu thay đổi
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Thêm voucher
+      const addVoucherForm = document.querySelector('#addVoucherForm');
+      if (addVoucherForm) {
+        addVoucherForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(addVoucherForm);
+          const body = Object.fromEntries(formData.entries());
+          try {
+            const response = await fetch('/vouchers', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            const result = await response.json();
+            if (result.message) {
+              alert('Voucher đã được thêm!');
+              location.reload();
+            } else {
+              alert('Thêm voucher thất bại: ' + result.error);
+            }
+          } catch (error) {
+            console.error('Error adding voucher:', error);
+          }
+        });
+      }
+
+      // Sửa voucher
+      const editVoucherForm = document.querySelector('#editVoucherForm');
+      document.querySelectorAll('.edit-voucher-btn').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const voucherId = button.getAttribute('data-id');
+          try {
+            const response = await fetch(`/vouchers/${voucherId}`);
+            const voucher = await response.json();
+            editVoucherForm.name.value = voucher.name;
+            editVoucherForm.code.value = voucher.code;
+            editVoucherForm.discountPercentage.value = voucher.discountPercentage;
+            editVoucherForm.maximumDiscount.value = voucher.maximumDiscount;
+            editVoucherForm.expirationDate.value = voucher.expirationDate.split('T')[0];
+            editVoucherForm.isActive.value = voucher.isActive ? 'true' : 'false';
+            editVoucherForm.id.value = voucher._id;
+          } catch (error) {
+            console.error('Error fetching voucher:', error);
+          }
+        });
+      });
+
+      editVoucherForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(editVoucherForm);
+        const body = Object.fromEntries(formData.entries());
+        const voucherId = body.id;
+        if (!voucherId) {
+          alert('Không tìm thấy ID của voucher.');
+          return;
+        }
+        try {
+          const response = await fetch(`/vouchers/${voucherId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Voucher đã được cập nhật!');
+            location.reload();
+          } else {
+            alert('Cập nhật voucher thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error updating voucher:', error);
+          alert('Đã xảy ra lỗi khi cập nhật voucher.');
+        }
+      });
+
+      // Xóa voucher
+      document.querySelectorAll('.delete-voucher-btn').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const voucherId = button.getAttribute('data-id');
+          if (confirm('Bạn có chắc chắn muốn xóa voucher này?')) {
+            try {
+              const response = await fetch(`/vouchers/${voucherId}`, {
+                method: 'DELETE'
+              });
+              const result = await response.json();
+              if (result.message) {
+                alert('Voucher đã bị xóa!');
+                location.reload();
+              } else {
+                alert('Xóa voucher thất bại: ' + result.error);
+              }
+            } catch (error) {
+              console.error('Error deleting voucher:', error);
+            }
+          }
+        });
+      });
+    });
