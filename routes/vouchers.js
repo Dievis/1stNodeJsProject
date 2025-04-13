@@ -1,7 +1,7 @@
 //- filepath: d:\Github\TPD\1stNodeJsProject\routes\vouchers.js
 
 const express = require('express');
-const { addVoucher, deleteVoucher, updateVoucher, getAllVouchers } = require('../controllers/voucher');
+const { addVoucher, deleteVoucher, updateVoucher, getAllVouchers, getAvailableVouchers, redeemVoucher, getRedeemedVouchers } = require('../controllers/voucher');
 let {check_authentication,check_authorization} = require('../utils/check_auth')
 
 
@@ -18,5 +18,14 @@ router.delete('/:id',check_authentication,check_authorization(["admin","mod"]), 
 
 // Route để cập nhật một voucher theo ID
 router.put('/:id',check_authentication,check_authorization(["admin","mod"]), updateVoucher); // Sửa voucher
+
+// Lấy danh sách voucher chưa sử dụng
+router.get('/available/:userId', getAvailableVouchers);
+
+// Đánh dấu voucher là đã sử dụng
+router.post('/redeem', redeemVoucher);
+
+// Lấy danh sách voucher đã sử dụng
+router.get('/redeemed/:userId', getRedeemedVouchers);
 
 module.exports = router;
