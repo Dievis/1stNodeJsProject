@@ -1,0 +1,72 @@
+extends layout
+
+block content
+  section.product-detail.bg-light.py-5
+    .container
+      if product
+        .row
+          .col-md-6
+            // Hình ảnh sản phẩm
+            img.img-fluid.rounded.shadow-lg(src=product.imgURL || 'https://via.placeholder.com/500x500', alt=product.name)
+          .col-md-6
+            h2.text-primary.mb-3 #{product.name}
+            p.text-muted.mb-1 Category: #{product.category ? product.category.name : 'Uncategorized'}
+            p.fs-4.text-success.mb-3 Giá: $#{product.price}
+            if product.discount > 0
+              p.text-danger.mb-3 Giảm giá: #{product.discount}%
+            p.mb-4 Mô tả: #{product.description || 'Không có mô tả.'}
+            p.mb-3 Đánh giá: #{product.rating} ⭐ (#{product.ratingCount} lượt đánh giá)
+            p.mb-3 Số lượng còn lại: #{product.quantity}
+            .d-flex.gap-3
+              button.btn.btn-success.rounded-pill.add-to-cart-btn(data-id=product._id) 
+                i.fas.fa-cart-plus.me-1
+                | Thêm vào giỏ hàng
+              button.btn.btn-warning.rounded-circle.favorite-btn(data-id=product._id, title='Add to favorites')
+                if userFavorites && userFavorites.includes(product._id.toString())
+                  i.fas.fa-heart.text-danger
+                else
+                  i.far.fa-heart
+
+        // Phần đánh giá sản phẩm
+        section.reviews-section.mt-5
+          h3 Đánh giá sản phẩm
+          if reviews && reviews.length > 0
+            .list-group
+              each review in reviews
+                .list-group-item
+                  p.text-muted - #{review.user.username} đánh giá:
+                  p.mb-1
+                    | #{review.comment}
+                  p.rating
+                    | Đánh giá: #{review.rating} ⭐
+          else
+            p.text-muted Chưa có đánh giá nào cho sản phẩm này.
+
+          // Form gửi đánh giá
+          if user
+            form#review-form(method='POST', action='/reviews')
+            nput(type='hidden', name='productId', value=product._id) <!-- Đảm bảo `product._id` có giá trị đúng -->
+              .mb-3
+                label(for='rating') Chọn đánh giá:
+                select#rating.form-select(name='rating')
+                  option(value='1') 1 ⭐
+                  option(value='2') 2 ⭐
+                  option(value='3') 3 ⭐
+                  option(value='4') 4 ⭐
+                  option(value='5') 5 ⭐
+              .mb-3
+                label(for='comment') Bình luận:
+                textarea#comment.form-control(name='comment', rows='4')
+              button.btn.btn-primary(type='submit') Gửi đánh giá
+          else
+            p.text-muted Để đánh giá sản phẩm, vui lòng đăng nhập.
+
+      else
+        p.text-center.text-danger Sản phẩm không tồn tại hoặc đã bị xóa.
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      
+    });
+

@@ -11,12 +11,15 @@ async function addReview(userId, productId, rating, comment) {
             rating: rating,
             comment: comment
         });
+
         await review.save();
+        await review.populate('user', 'username'); // 👈 Thêm dòng này để có user.username
         return review;
     } catch (error) {
         throw error;
     }
 }
+
 
 // Lấy danh sách review của sản phẩm
 async function getReviewsByProduct(productId) {
@@ -59,6 +62,8 @@ async function deleteReview(reviewId) {
         throw error;
     }
 }
+
+
 
 module.exports = {
     addReview,
