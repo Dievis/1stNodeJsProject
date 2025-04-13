@@ -1,5 +1,6 @@
 const Payment = require('../schemas/payment');
 const Cart = require('../schemas/cart');
+const Product = require('../schemas/product'); // Import schema Product
 
 // Tạo thanh toán
 const createPayment = async (req, res) => {
@@ -38,6 +39,18 @@ const createPayment = async (req, res) => {
         cart.items = cart.items.filter(item => !item.isChoosed);
         cart.totalPrice = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0); // Cập nhật tổng giá tiền
         await cart.save();
+
+        // Giảm số lượng sản phẩm trong bảng product
+        for (const item of selectedItems) {
+            const product = await Product.findById(item.product);
+            if (product) {
+                product.quantity -= item.quantity; // Trừ số lượng đã thanh toán
+                if (product.quantity < 0) {
+                    product.quantity = 0; // Đảm bảo số lượng không âm
+                }
+                await product.save();
+            }
+        }
 
         res.status(201).json({ message: 'Payment created successfully', payment });
     } catch (error) {
