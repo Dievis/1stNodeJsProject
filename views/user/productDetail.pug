@@ -39,13 +39,15 @@ block content
                     | #{review.comment}
                   p.rating
                     | Đánh giá: #{review.rating} ⭐
+                  if user && user._id.toString() === review.user._id.toString()
+                    button.btn.btn-sm.btn-danger.delete-review-btn(data-review-id=review._id) Xóa
           else
             p.text-muted Chưa có đánh giá nào cho sản phẩm này.
 
           // Form gửi đánh giá
           if user
             form#review-form(method='POST', action='/reviews')
-            nput(type='hidden', name='productId', value=product._id) <!-- Đảm bảo `product._id` có giá trị đúng -->
+              input(type='hidden', name='productId', value=product._id)
               .mb-3
                 label(for='rating') Chọn đánh giá:
                 select#rating.form-select(name='rating')
@@ -67,6 +69,77 @@ block content
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
-      
+      // Thêm đánh giá
+      const reviewForm = document.querySelector('#review-form');
+      if (reviewForm) {
+        // Xóa tất cả sự kiện trước khi gắn mới
+        reviewForm.replaceWith(reviewForm.cloneNode(true));
+
+        reviewForm.addEventListener('submit', async (e) => {
+          e.preventDefault(); // Ngăn chặn hành vi mặc định của form
+
+          const formData = new FormData(reviewForm);
+          const body = {
+            productId: formData.get('productId'),
+            rating: formData.get('rating'),
+            comment: formData.get('comment')
+          };
+
+          try {
+            const response = await fetch('/reviews', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+              alert('Đánh giá của bạn đã được thêm!');
+              location.reload(); // Tải lại trang để hiển thị đánh giá mới
+            } else {
+              alert('Thêm đánh giá thất bại: ' + result.message);
+            }
+          } catch (error) {
+            console.error('Error adding review:', error);
+            alert('Đã xảy ra lỗi khi thêm đánh giá.');
+          }
+        }, { once: true }); // Đảm bảo sự kiện chỉ chạy một lần
+      }
+
+      // Xóa đánh giá
+      document.querySelectorAll('.delete-review-btn').forEach((button) => {
+        button.addEventListener('click', async (e) => {
+          const reviewId = button.getAttribute('data-review-id');
+          if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+            try {
+              const response = await fetch(`/reviews/${reviewId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+
+              const result = await response.json();
+              if (result.success) {
+                alert('Đánh giá của bạn đã được xóa!');
+                location.reload(); // Tải lại trang để cập nhật danh sách đánh giá
+              } else {
+                alert('Xóa đánh giá thất bại: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error deleting review:', error);
+              alert('Đã xảy ra lỗi khi xóa đánh giá.');
+            }
+          }
+        });
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+        }
+      });
     });
 

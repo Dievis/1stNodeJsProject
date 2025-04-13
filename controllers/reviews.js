@@ -5,6 +5,7 @@ const ReviewModel = require('../schemas/review');
 // Thêm review
 async function addReview(userId, productId, rating, comment) {
     try {
+        console.log('Adding review:', { userId, productId, rating, comment }); // Log dữ liệu nhận được
         const review = new ReviewModel({
             user: userId,
             product: productId,
