@@ -2,9 +2,10 @@
 extends ../shared/layout
 
 block content
-  h1 Error
-  h2= message
-  if error.status
-    p Status: #{error.status}
-  if error.stack
-    pre= error.stack
+  .container.mt-5
+    .alert.alert-danger
+      h2 Error!
+      p= message
+      if error && error.stack
+        pre= error.stack
+    a.btn.btn-primary.mt-3(href="/") Quay về trang chủ

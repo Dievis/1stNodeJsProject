@@ -58,7 +58,7 @@ router.get('/forgotpassword', async function (req, res) {
     });
 });
 router.get('/resetpassword/:token', async function (req, res) {
-    res.render('resetPassword', { token: req.params.token });
+    res.render('user/resetPassword', { token: req.params.token });
 });
 
 // ======== API ========
