@@ -19,4 +19,7 @@ let favoriteSchema = mongoose.Schema({
     timestamps: true 
 });
 
+// Thêm unique index để ngăn lưu trùng
+favoriteSchema.index({ user: 1, product: 1 }, { unique: true });
+
 module.exports = mongoose.model('favorite', favoriteSchema);

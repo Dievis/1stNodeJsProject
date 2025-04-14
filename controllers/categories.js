@@ -1,18 +1,16 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\categories.js
-
 const categorySchema = require('../schemas/category');
 const { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseHandler');
 
 exports.getAllCategories = async (req, res) => {
     try {
-        const categories = await categorySchema.find({ isDeleted: false }); // Lấy danh mục chưa bị xóa
+        const categories = await categorySchema.find({ isDeleted: false }); 
         res.render('admin/categories', {
             title: 'Quản lý danh mục',
             categories: categories,
             user: req.user
         });
     } catch (error) {
-        console.error('Error fetching categories:', error.message); // Log lỗi chi tiết
+        console.error('Error fetching categories:', error.message); 
         res.status(500).render('shared/error', {
             title: 'Error',
             message: 'Lỗi khi lấy danh sách danh mục.',
@@ -70,10 +68,10 @@ exports.updateCategory = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
     try {
-        const categoryId = req.params.id; // Lấy ID từ URL
+        const categoryId = req.params.id; 
         const deletedCategory = await categorySchema.findByIdAndUpdate(
             categoryId,
-            { isDeleted: true }, // Đánh dấu là đã xóa
+            { isDeleted: true }, 
             { new: true }
         );
 

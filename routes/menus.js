@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\routes\menus.js
-
 const express = require('express');
 const router = express.Router();
 const menuController = require('../controllers/menus');
@@ -7,14 +5,12 @@ const { check_authentication, check_authorization } = require('../utils/check_au
 const constants = require('../utils/constants');
 const { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseHandler');
 
-// Route để render danh sách menu
 router.get('/', check_authentication, check_authorization(constants.ADMIN_PERMISSION), menuController.GetMenusForAdmin);
 
-// Route để render giao diện chỉnh sửa menu
 router.get('/edit/:id', check_authentication, check_authorization(constants.ADMIN_PERMISSION), async (req, res) => {
     try {
-        const menu = await menuController.GetMenuById(req.params.id); // Lấy thông tin menu theo ID
-        const menus = await menuController.GetMenusForAdmin(); // Lấy danh sách menu để chọn menu cha
+        const menu = await menuController.GetMenuById(req.params.id); 
+        const menus = await menuController.GetMenusForAdmin(); 
         res.render('admin/editMenu', {
             title: 'Chỉnh sửa Menu',
             menu: menu,

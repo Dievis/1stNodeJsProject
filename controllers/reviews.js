@@ -1,11 +1,8 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\reviews.js
-
 const ReviewModel = require('../schemas/review');
 
-// Thêm review
 async function addReview(userId, productId, rating, comment) {
     try {
-        console.log('Adding review:', { userId, productId, rating, comment }); // Log dữ liệu nhận được
+        console.log('Adding review:', { userId, productId, rating, comment }); 
         const review = new ReviewModel({
             user: userId,
             product: productId,
@@ -14,7 +11,7 @@ async function addReview(userId, productId, rating, comment) {
         });
 
         await review.save();
-        await review.populate('user', 'username'); // 👈 Thêm dòng này để có user.username
+        await review.populate('user', 'username'); 
         return review;
     } catch (error) {
         throw error;
@@ -22,12 +19,11 @@ async function addReview(userId, productId, rating, comment) {
 }
 
 
-// Lấy danh sách review của sản phẩm
 async function getReviewsByProduct(productId) {
     try {
         const reviews = await ReviewModel.find({ product: productId })
-            .populate('user', 'username') // Lấy thông tin người dùng (chỉ username)
-            .populate('product', 'name'); // Lấy thông tin sản phẩm (chỉ name)
+            .populate('user', 'username') 
+            .populate('product', 'name'); 
         return reviews;
     } catch (error) {
         throw error;
@@ -40,7 +36,7 @@ async function updateReview(reviewId, rating, comment) {
         const updatedReview = await ReviewModel.findByIdAndUpdate(
             reviewId,
             { rating: rating, comment: comment },
-            { new: true } // Trả về document đã được cập nhật
+            { new: true } 
         );
         if (!updatedReview) {
             throw new Error('Review không tồn tại');
@@ -63,7 +59,6 @@ async function deleteReview(reviewId) {
         throw error;
     }
 }
-
 
 
 module.exports = {

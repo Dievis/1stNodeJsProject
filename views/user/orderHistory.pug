@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  h1.text-center.mt-4 Lịch sử thanh toán
+
+  if payments.length > 0
+    .container.mt-4
+      each payment in payments
+        .card.mb-4.shadow-sm
+          .card-header.bg-primary.text-white
+            h5= `Thanh toán #${payment._id}`
+            p= `Ngày: ${new Date(payment.createdAt).toLocaleDateString()}`
+          .card-body
+            h6.text-muted Sản phẩm:
+            ul
+              each item in payment.items
+                li
+                  strong= item.product.name
+                  |  - Số lượng: #{item.quantity} - Giá: #{item.price} VND
+                  if item.discount > 0
+                    |  - Giảm giá: #{item.discount}%
+            h6.text-muted Tổng giá trị:
+            p= `Tổng giá trị sản phẩm: ${payment.itemTotalPrice.toLocaleString()} VND`
+            p= `Tổng giảm giá: ${payment.discountTotal.toLocaleString()} VND`
+            p.text-success= `Tổng thanh toán: ${payment.totalPrice.toLocaleString()} VND`
+  else
+    p.text-center.mt-4 Không có lịch sử thanh toán nào.

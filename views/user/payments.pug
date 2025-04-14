@@ -1,0 +1,41 @@
+extends layout
+
+block content
+  h1.text-center.mt-4 Xác nhận thanh toán
+
+  if selectedItems && selectedItems.length > 0
+    form(method="POST", action=`/payments/${userId}`)
+      table.table.table-bordered.mt-4
+        thead
+          tr
+            th Tên sản phẩm
+            th Số lượng
+            th Giá mỗi sản phẩm
+            th Tổng giá trị
+        tbody
+          each item in selectedItems
+            tr
+              td= item.product.name
+              td= item.quantity
+              td #{item.product.price.toLocaleString('vi-VN')} VND
+              td #{(item.product.price * item.quantity).toLocaleString('vi-VN')} VND
+        tfoot
+          tr
+            td(colspan="3").text-end Tổng tiền:
+            td.text-primary #{totalPrice.toLocaleString('vi-VN')} VND
+          if totalDiscount > 0
+            tr
+              td(colspan="3").text-end Giảm giá:
+              td.text-success -#{totalDiscount.toLocaleString('vi-VN')} VND
+          tr
+            td(colspan="3").text-end Giá cuối cùng:
+            td.text-primary #{finalPrice.toLocaleString('vi-VN')} VND
+
+      .actions.mt-4.text-center
+        button.btn.btn-primary(type="submit") Xác nhận thanh toán
+    .text-center.mt-3
+      a.btn.btn-secondary(href="/carts") Quay lại giỏ hàng
+  else
+    p.text-center.mt-4 Không có sản phẩm nào được chọn để thanh toán.
+
+    

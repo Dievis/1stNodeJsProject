@@ -1,7 +1,6 @@
 const { Voucher, RedeemedVoucher } = require('../schemas/voucher');
 const mongoose = require('mongoose');
 
-// Lấy danh sách tất cả các voucher
 const getAllVouchers = async (req, res) => {
     try {
         console.log('Fetching vouchers...');
@@ -21,7 +20,6 @@ const getAllVouchers = async (req, res) => {
 };
 
 
-// Lấy voucher theo ID (cho chức năng sửa voucher)
 const getVoucher = async (req, res) => {
     try {
         const { id } = req.params;
@@ -35,7 +33,6 @@ const getVoucher = async (req, res) => {
     }
 };
 
-// Thêm voucher
 const addVoucher = async (req, res) => {
     try {
         const { name, code, discountPercentage, maximumDiscount, expirationDate } = req.body;
@@ -53,7 +50,6 @@ const addVoucher = async (req, res) => {
     }
 };
 
-// Xóa voucher
 const deleteVoucher = async (req, res) => {
     try {
         const { id } = req.params;
@@ -67,7 +63,6 @@ const deleteVoucher = async (req, res) => {
     }
 };
 
-// Cập nhật voucher
 const updateVoucher = async (req, res) => {
     try {
         const { id } = req.params;
@@ -95,7 +90,6 @@ const updateVoucher = async (req, res) => {
     }
 };
 
-// Lấy danh sách voucher chưa sử dụng
 const getAvailableVouchers = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -111,7 +105,6 @@ const getAvailableVouchers = async (req, res) => {
     }
 };
 
-// Đánh dấu voucher là đã sử dụng
 const redeemVoucher = async (req, res) => {
     try {
         const { userId, voucherId } = req.body;
@@ -129,7 +122,6 @@ const redeemVoucher = async (req, res) => {
             return res.status(400).json({ message: 'User ID is required.' });
         }
 
-        // Chuyển đổi userId thành ObjectId
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             console.log('Invalid User ID.');
             return res.status(400).json({ message: 'Invalid User ID.' });
@@ -166,7 +158,6 @@ const redeemVoucher = async (req, res) => {
     }
 };
 
-// Lấy danh sách voucher đã sử dụng
 const getRedeemedVouchers = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -181,7 +172,7 @@ const getRedeemedVouchers = async (req, res) => {
 
 module.exports = {
     getAllVouchers,
-    getVoucher, // Xuất thêm hàm này để lấy voucher theo ID
+    getVoucher, 
     addVoucher,
     deleteVoucher,
     updateVoucher,

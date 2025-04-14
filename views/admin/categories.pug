@@ -32,7 +32,6 @@ block content
     else
       p.text-center.text-muted Không có danh mục nào.
 
-  // Modal for adding category
   .modal.fade#addCategoryModal(tabindex="-1" role="dialog")
     .modal-dialog.modal-dialog-centered(role="document")
       .modal-content
@@ -51,7 +50,6 @@ block content
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
           button.btn.btn-success(type="submit") Thêm mới
 
-  // Modal for editing category
   .modal.fade#editCategoryModal(tabindex="-1" role="dialog")
     .modal-dialog.modal-dialog-centered(role="document")
       .modal-content
@@ -74,7 +72,6 @@ block content
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
-      // Xóa danh mục
       document.querySelectorAll('.delete-category').forEach(button => {
         button.addEventListener('click', async (e) => {
           const row = e.target.closest('tr');
@@ -102,7 +99,6 @@ block scripts
         });
       });
 
-      // Sửa danh mục
       document.querySelectorAll('.edit-category').forEach(button => {
         button.addEventListener('click', (e) => {
           const row = e.target.closest('tr');
@@ -119,7 +115,6 @@ block scripts
         });
       });
 
-      // Cập nhật danh mục
       document.querySelector('#editCategoryForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -150,7 +145,6 @@ block scripts
         }
       });
 
-      // Thêm danh mục
       document.querySelector('#addCategoryForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;

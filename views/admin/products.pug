@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\products.pug
-
 extends ../admin/layout
 
 block content
@@ -15,17 +13,25 @@ block content
         table.table.table-striped.table-hover
           thead
             tr
+              th Ảnh sản phẩm 
               th Tên sản phẩm
               th Giá
               th Số lượng
+              th Giảm giá (%)
               th Danh mục
               th Hành động
           tbody
             each product in products
               tr(data-id=product._id)
+                td
+                  if product.imgURL
+                    img(src=product.imgURL, alt=product.name, width="50", height="50")
+                  else
+                    span.text-muted Không có ảnh
                 td= product.name
                 td $#{product.price}
                 td= product.quantity
+                td= product.discount
                 td(data-id=product.category ? product.category._id : '')= product.category ? product.category.name : 'Không có danh mục'
                 td
                   a.btn.btn-sm.btn-warning.me-2.edit-product(href='#', data-bs-toggle="modal", data-bs-target="#editProductModal")
@@ -37,7 +43,6 @@ block content
     else
       p.text-center.text-muted Không có sản phẩm nào.
 
-  // Modal for adding product
   .modal#addProductModal(tabindex="-1" role="dialog")
     .modal-dialog.modal-dialog-centered(role="document")
       .modal-content
@@ -46,7 +51,7 @@ block content
           button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
             span(aria-hidden="true") &times;
         .modal-body
-          form#addProductForm
+          form#addProductForm(enctype="multipart/form-data") 
             .form-group
               label(for="name") Tên sản phẩm
               input.form-control(type="text", name="name", required)
@@ -57,16 +62,21 @@ block content
               label(for="quantity") Số lượng
               input.form-control(type="number", name="quantity", required)
             .form-group
+              label(for="discount") Giảm giá (%)
+              input.form-control(type="number", name="discount", min="0", max="100", value="0")
+            .form-group
               label(for="category") Danh mục
               select.form-control(name="category", required)
                 option(value="" disabled selected) -- Chọn danh mục --
                 each category in categories
                   option(value=category._id)= category.name
+            .form-group
+              label(for="image") Ảnh sản phẩm
+              input.form-control(type="file", name="image") 
             .modal-footer
               button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
               button.btn.btn-primary(type="submit") Thêm sản phẩm
 
-  // Modal for editing product
   .modal#editProductModal(tabindex="-1" role="dialog")
     .modal-dialog.modal-dialog-centered(role="document")
       .modal-content
@@ -75,7 +85,7 @@ block content
           button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
             span(aria-hidden="true") &times;
         .modal-body
-          form#editProductForm
+          form#editProductForm(enctype="multipart/form-data")
             input(type="hidden", name="id")
             .form-group
               label(for="name") Tên sản phẩm
@@ -87,11 +97,17 @@ block content
               label(for="quantity") Số lượng
               input.form-control(type="number", name="quantity", required)
             .form-group
+              label(for="discount") Giảm giá (%)
+              input.form-control(type="number", name="discount", min="0", max="100")
+            .form-group
               label(for="category") Danh mục
               select.form-control(name="category", required)
                 option(value="" disabled selected) -- Chọn danh mục --
                 each category in categories
                   option(value=category._id)= category.name
+            .form-group
+              label(for="image") Ảnh sản phẩm
+              input.form-control(type="file", name="image")
             .modal-footer
               button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
               button.btn.btn-primary(type="submit") Lưu thay đổi
@@ -99,7 +115,6 @@ block content
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
-      // Xóa sản phẩm
       document.querySelectorAll('.delete-product').forEach(button => {
         button.addEventListener('click', async (e) => {
           const row = e.target.closest('tr');
@@ -125,45 +140,37 @@ block scripts
         });
       });
 
-      // Sửa sản phẩm
       document.querySelectorAll('.edit-product').forEach(button => {
         button.addEventListener('click', (e) => {
           const row = e.target.closest('tr');
           const productId = row.getAttribute('data-id');
-          const name = row.children[0].innerText;
-          const price = row.children[1].innerText.replace('$', '');
-          const quantity = row.children[2].innerText;
-          const categoryId = row.children[3].getAttribute('data-id');
+          const name = row.children[1].innerText;
+          const price = row.children[2].innerText.replace('$', '');
+          const quantity = row.children[3].innerText;
+          const discount = row.children[4].innerText;
+          const categoryId = row.children[5].getAttribute('data-id');
 
-          // Điền thông tin vào modal
           const form = document.querySelector('#editProductForm');
           form.id.value = productId;
           form.name.value = name;
           form.price.value = price;
           form.quantity.value = quantity;
+          form.discount.value = discount;
           form.category.value = categoryId;
 
-          // Hiển thị modal
           $('#editProductModal').modal('show');
         });
       });
 
-      // Gửi yêu cầu thêm sản phẩm
       document.querySelector('#addProductForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
-        const body = {
-          name: form.querySelector('[name="name"]').value,
+        const formData = new FormData(form); 
 
-          price: form.querySelector('[name="price"]').value,
-          quantity: form.querySelector('[name="quantity"]').value,
-          category: form.querySelector('[name="category"]').value
-        };
         try {
           const response = await fetch('/products', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+            body: formData  
           });
           const result = await response.json();
           if (result.success) {
@@ -178,23 +185,16 @@ block scripts
         }
       });
 
-      // Gửi yêu cầu cập nhật sản phẩm
       document.querySelector('#editProductForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
-        const productId = form.id.value;
-        const body = {
-          name: form.name.value,
-          price: form.price.value,
-          quantity: form.quantity.value,
-          category: form.category.value
-        };
+        const formData = new FormData(form);
+        const productId = formData.get('id');
 
         try {
           const response = await fetch(`/products/${productId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+            body: formData  
           });
           const result = await response.json();
           if (result.success) {

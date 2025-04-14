@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\utils\mailer.js
-
 const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
     host: "sandbox.smtp.mailtrap.io",

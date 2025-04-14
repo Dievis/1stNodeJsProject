@@ -1,13 +1,11 @@
 extends layout
 
 block content
-  // Hero Section
   section.hero.bg-primary.text-white.py-5.shadow
     .container.text-center
       h1.display-4.mb-3 Welcome to Home Consumer Products!
       p.lead.fs-5 Find the best products for your home at unbeatable prices.
 
-  // Products Section
   section.products.bg-light.py-5
     .container
       h2.text-center.mb-5.text-dark Featured Products
@@ -23,77 +21,78 @@ block content
                   p.card-text.text-muted Category: #{product.category ? product.category.name : 'Uncategorized'}
                   p.card-text.fs-5.text-success.mt-2 $#{product.price}
                 .card-footer.bg-white.border-0.text-center
+                  // Link to product detail page
                   a.btn.btn-outline-primary.rounded-pill(href=`/products/${product._id}`) View Details
                   button.btn.favorite-btn.ms-2.rounded-circle.px-2.bg-warning.border-0(type='button', data-id=product._id, title='Add to favorites')
                     if userFavorites && userFavorites.includes(product._id.toString())
-                      i.fas.fa-heart.text-danger 
+                      i.fas.fa-heart.text-danger
                     else
-                      i.far.fa-heart 
+                      i.far.fa-heart
                   button.btn.btn-success.ms-2.rounded-circle.px-2.add-to-cart-btn(type='button', data-id=product._id, title='Add to cart')
-                    i.fas.fa-plus 
+                    i.fas.fa-plus
       else
         p.text-center.text-muted No products available.
-
-  // Vouchers Section
-  section.vouchers.bg-white.py-5
-    .container
-      h2.text-center.mb-5.text-dark Available Vouchers
-      if vouchers.length > 0
-        .row.row-cols-1.row-cols-sm-2.row-cols-md-3.g-4
-          each voucher in vouchers
-            .col
-              .card.h-100.shadow.border-0.rounded-4.position-relative.hover-shadow
-                .card-body.bg-white
-                  h5.card-title.text-primary #{voucher.name}
-                  p.card-text.text-muted
-                    | Mã: #{voucher.code}
-                    br
-                    | Giảm giá: #{voucher.discountPercentage}% (Tối đa: #{voucher.maximumDiscount}₫)
-                    br
-                    | Hạn sử dụng: #{voucher.expirationDate.toLocaleDateString()}
-                .card-footer.bg-white.border-0.text-center
-                  button.btn.btn-outline-primary.rounded-pill(type='button', data-id=voucher._id) Sử dụng Voucher
-      else
-        p.text-center.text-muted No vouchers available.
 
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
+      // Xử lý nút yêu thích
       const favButtons = document.querySelectorAll('.favorite-btn');
       favButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const icon = btn.querySelector('i');
-          const productId = btn.getAttribute('data-id');
-          const isFavorite = icon.classList.contains('text-danger'); 
+        // Thay thế nút bằng bản sao để xóa các sự kiện cũ
+        const clonedBtn = btn.cloneNode(true);
+        btn.replaceWith(clonedBtn);
+
+        // Gắn sự kiện mới cho nút đã được thay thế
+        clonedBtn.addEventListener('click', async (e) => {
+          const icon = clonedBtn.querySelector('i');
+          const productId = clonedBtn.getAttribute('data-id');
+          const isFavorite = icon.classList.contains('text-danger');
 
           try {
             if (isFavorite) {
-              await fetch(`/favorites/${productId}`, {
+              const response = await fetch(`/favorites/${productId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
               });
+              if (response.ok) {
+                icon.classList.remove('text-danger', 'fas');
+                icon.classList.add('far');
+              } else {
+                const result = await response.json();
+                alert('❌ Không thể xóa sản phẩm khỏi danh sách yêu thích: ' + result.message);
+              }
             } else {
-              await fetch(`/favorites`, {
+              const response = await fetch(`/favorites`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ productId })
               });
+              if (response.ok) {
+                icon.classList.add('text-danger', 'fas');
+                icon.classList.remove('far');
+              } else {
+                const result = await response.json();
+                alert('❌ Không thể thêm sản phẩm vào danh sách yêu thích: ' + result.message);
+              }
             }
-
-            icon.classList.toggle('text-danger'); 
-            icon.classList.toggle('fas'); 
-            icon.classList.toggle('far'); 
           } catch (error) {
             console.error('Error updating favorites:', error);
+            alert('⚠️ Đã xảy ra lỗi khi cập nhật danh sách yêu thích.');
           }
         });
       });
 
-      // Xử lý sự kiện thêm vào giỏ hàng
+      // Xử lý nút thêm vào giỏ hàng
       const cartButtons = document.querySelectorAll('.add-to-cart-btn');
       cartButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const productId = btn.getAttribute('data-id');
+        // Thay thế nút bằng bản sao để xóa các sự kiện cũ
+        const clonedBtn = btn.cloneNode(true);
+        btn.replaceWith(clonedBtn);
+
+        // Gắn sự kiện mới cho nút đã được thay thế
+        clonedBtn.addEventListener('click', async (e) => {
+          const productId = clonedBtn.getAttribute('data-id');
 
           try {
             const response = await fetch('/carts/add', {
@@ -111,35 +110,6 @@ block scripts
           } catch (error) {
             console.error('Error adding to cart:', error);
             alert('⚠️ Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.');
-          }
-        });
-      });
-
-      const useVoucherButtons = document.querySelectorAll('.btn-outline-primary');
-      useVoucherButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const voucherId = btn.getAttribute('data-id');
-          const userId = '#{user._id}'; // Lấy userId từ server-side
-
-          console.log('Sending voucherId:', voucherId);
-          console.log('Sending userId:', userId);
-
-          try {
-            const response = await fetch(`/vouchers/redeem`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ voucherId, userId })
-            });
-
-            if (response.ok) {
-              alert('🎉 Voucher đã được sử dụng thành công!');
-            } else {
-              const result = await response.json();
-              alert('❌ Không thể sử dụng voucher: ' + result.message);
-            }
-          } catch (error) {
-            console.error('Error using voucher:', error);
-            alert('⚠️ Đã xảy ra lỗi khi sử dụng voucher.');
           }
         });
       });

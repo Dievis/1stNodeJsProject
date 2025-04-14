@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\roles.js
-
 let roleSchema = require('../schemas/role');
 
 module.exports = {
@@ -21,7 +19,7 @@ module.exports = {
         return await roleSchema.findByIdAndUpdate(
             id,
             { name: name },
-            { new: true } // Return the updated document
+            { new: true } 
         );
     },
     DeleteRole: async function (id) {

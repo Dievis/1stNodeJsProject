@@ -1,0 +1,52 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    h1.text-center.mb-4 Danh sách Voucher
+
+    if vouchers && vouchers.length > 0
+      .row
+        each voucher in vouchers
+          .col-md-4.mb-3
+            .card
+              .card-body
+                h5.card-title= voucher.name
+                p.card-text
+                  | Mã: #{voucher.code}
+                  br
+                  | Giảm giá: #{voucher.discountPercentage}% (Tối đa: #{voucher.maximumDiscount}₫)
+                  br
+                  | Hạn sử dụng: #{voucher.expirationDate.toLocaleDateString()}
+                button.btn.btn-primary.use-voucher-btn(data-id=voucher._id) Sử dụng
+    else
+      p.text-center.text-muted Không có voucher nào khả dụng.
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.use-voucher-btn').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const voucherId = button.getAttribute('data-id');
+          if (confirm('Bạn có chắc chắn muốn sử dụng voucher này?')) {
+            try {
+              const response = await fetch('/vouchers/use', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ voucherId })
+              });
+
+              const result = await response.json();
+              if (result.success) {
+                alert(result.message);
+                location.reload(); // Tải lại trang để cập nhật danh sách voucher
+              } else {
+                alert('Sử dụng voucher thất bại: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error using voucher:', error);
+              alert('Đã xảy ra lỗi khi sử dụng voucher.');
+            }
+          }
+        });
+      });
+    });

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const paymentDetailSchema = mongoose.Schema({
     product: {
         type: mongoose.Types.ObjectId,
-        ref: 'product', // Tham chiếu đến schema product
+        ref: 'product', 
         required: true
     },
     quantity: {
@@ -13,47 +13,47 @@ const paymentDetailSchema = mongoose.Schema({
     },
     price: {
         type: Number,
-        required: true // Lưu giá sản phẩm tại thời điểm thanh toán
+        required: true 
     },
     discount: {
         type: Number,
         min: 0,
         max: 100,
-        default: 0 // Lưu giảm giá áp dụng cho sản phẩm
+        default: 0 
     },
     voucher: [{
         type: mongoose.Types.ObjectId,
-        ref: 'voucher' // Tham chiếu đến schema voucher
+        ref: 'voucher' 
     }]
 }, {
-    timestamps: true // Tự động thêm createdAt và updatedAt
+    timestamps: true 
 });
 
 const paymentSchema = mongoose.Schema({
     user: {
         type: mongoose.Types.ObjectId,
-        ref: 'user', // Tham chiếu đến schema user
+        ref: 'user', 
         required: true
     },
-    items: [paymentDetailSchema], // Mảng các sản phẩm trong thanh toán
+    items: [paymentDetailSchema],
     itemTotalPrice: {
         type: Number,
-        default: 0 // Tổng giá trị sản phẩm được chọn
+        default: 0
     },
     discountTotal: {
         type: Number,
-        default: 0 // Tổng giá trị được giảm
+        default: 0 
     },
     totalPrice: {
         type: Number,
-        default: 0 // Tổng giá trị sau khi giảm
+        default: 0 
     },
-    vouchers: [{ // Mảng các voucher được sử dụng
+    vouchers: [{
         type: mongoose.Types.ObjectId,
-        ref: 'voucher' // Tham chiếu đến schema voucher
+        ref: 'voucher' 
     }]
 }, {
-    timestamps: true // Tự động thêm createdAt và updatedAt
+    timestamps: true 
 });
 
 module.exports = mongoose.model('payment', paymentSchema);

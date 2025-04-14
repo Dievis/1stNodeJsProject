@@ -1,86 +1,57 @@
-// const express = require('express');
-// const router = express.Router();
-// const { check_authentication } = require('../utils/check_auth');
-// const { addFavorite, getFavoritesByUser, removeFavorite } = require('../controllers/favorites');
-// const FavoriteModel = require('../schemas/favorite'); // Import FavoriteModel
-
-// router.post('/', check_authentication, async (req, res) => {
-//     try {
-//         const { productId } = req.body;
-//         const userId = req.user._id; 
-//         const favorite = await addFavorite(userId, productId);
-//         res.status(200).json({ success: true, data: favorite });
-//     } catch (error) {
-//         res.status(500).json({ success: false, message: error.message });
-//     }
-// });
-
-// router.get('/', check_authentication, async (req, res) => {
-//     try {
-//         const userId = req.user._id; 
-//         const favorites = await getFavoritesByUser(userId);
-//         res.status(200).json({ success: true, data: favorites });
-//     } catch (error) {
-//         res.status(500).json({ success: false, message: error.message });
-//     }
-// });
-
-// router.delete('/', check_authentication, async (req, res) => {
-//     try {
-//         const { productId } = req.body;
-//         const userId = req.user._id; 
-//         const result = await removeFavorite(userId, productId);
-//         res.status(200).json({ success: true, data: result });
-//     } catch (error) {
-//         res.status(500).json({ success: false, message: error.message });
-//     }
-// });
-
-// router.put('/', check_authentication, async (req, res) => {
-//     try {
-//         const { productId, newProductId } = req.body; 
-//         const userId = req.user._id; 
-
-//         const updatedFavorite = await FavoriteModel.findOneAndUpdate(
-//             { user: userId, product: productId }, 
-//             { product: newProductId }, 
-//             { new: true } 
-//         );
-
-//         if (!updatedFavorite) {
-//             return res.status(404).json({ success: false, message: 'Sản phẩm yêu thích không tồn tại' });
-//         }
-
-//         res.status(200).json({ success: true, data: updatedFavorite });
-//     } catch (error) {
-//         res.status(500).json({ success: false, message: error.message });
-//     }
-// });
-
-
-
-// module.exports = router;
 const express = require('express');
 const router = express.Router();
 const { check_authentication } = require('../utils/check_auth');
 const favoritesController = require('../controllers/favorites');
 
-router.get('/', check_authentication, favoritesController.getFavoritesByUser);
+// Render danh sách yêu thích
+router.get('/', check_authentication, async (req, res) => {
+    try {
+        const result = await favoritesController.getFavoritesByUser(req.user._id);
+        if (result.success) {
+            res.render('user/favorites', { favorites: result.data });
+        } else {
+            res.render('user/favorites', { favorites: [], error: result.message });
+        }
+    } catch (error) {
+        console.error('Error rendering favorites:', error);
+        res.render('user/favorites', { favorites: [], error: 'Đã xảy ra lỗi khi tải danh sách yêu thích.' });
+    }
+});
 
+// Thêm sản phẩm vào danh sách yêu thích
 router.post('/', check_authentication, async (req, res) => {
     const { productId } = req.body;
-    const userId = req.user._id;
-    const result = await favoritesController.addFavorite(userId, productId);
+    const result = await favoritesController.addFavorite(req.user._id, productId);
     res.status(result.success ? 200 : 400).json(result);
 });
 
-router.put('/', check_authentication, favoritesController.updateFavorite);
-
+// Xóa sản phẩm khỏi danh sách yêu thích
 router.delete('/:productId', check_authentication, async (req, res) => {
     const { productId } = req.params;
-    const userId = req.user._id;
-    const result = await favoritesController.removeFavorite(userId, productId);
-    res.status(result.success ? 200 : 400).json(result);
+
+    try {
+        const result = await favoritesController.removeFavorite(req.user._id, productId);
+        if (result.success) {
+            return res.status(200).json({ success: true, message: 'Sản phẩm đã được xóa khỏi danh sách yêu thích.' });
+        } else {
+            return res.status(400).json({ success: false, message: result.message });
+        }
+    } catch (error) {
+        console.error('Error removing favorite:', error);
+        return res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi xóa sản phẩm khỏi danh sách yêu thích.' });
+    }
+});
+
+router.put('/:productId', check_authentication, async (req, res) => {
+  const { productId } = req.params;
+  const { newProductId } = req.body;
+
+  try {
+    const result = await favoritesController.updateFavorite(req.user._id, productId, newProductId);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 });
 
 module.exports = router;

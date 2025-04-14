@@ -1,8 +1,30 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\dashboard.pug
-
 extends ../admin/layout
 
 block content
   section.hero.bg-primary.text-white.py-5
     .container.text-center
-      h1 Welcome to Admin Dashboard!
+      h1.display-4 Welcome to Admin Dashboard!
+      p.lead Xin chào, #{user.name}!
+      hr.my-4
+      p.text-light Đây là nơi bạn có thể quản lý hệ thống.
+
+  section.user-info.my-5
+    .container
+      .row.justify-content-center
+        .col-md-8
+          .card.shadow-lg
+            .card-header.bg-dark.text-white.text-center
+              h5 Thông tin tài khoản
+            .card-body
+              ul.list-group.list-group-flush
+                li.list-group-item
+                  strong Tên đăng nhập: 
+                  span.text-muted #{user.username}
+                li.list-group-item
+                  strong Email: 
+                  span.text-muted #{user.email}
+                li.list-group-item
+                  strong Vai trò: 
+                  span.badge.bg-success.text-uppercase #{user.role.name}
+            .card-footer.text-center
+              a.btn.btn-primary(href="/admin/settings") Cập nhật thông tin
