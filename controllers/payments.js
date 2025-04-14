@@ -221,10 +221,42 @@ const deletePayment = async (req, res) => {
     }
 };
 
+// Lấy lịch sử thanh toán
+const getPaymentHistory = async (req, res) => {
+    try {
+        if (!req.user || !req.user._id) {
+            return res.status(401).send('Bạn cần đăng nhập để xem lịch sử thanh toán.');
+        }
+
+        const userId = req.user._id;
+        const payments = await Payment.find({ user: userId })
+            .populate({
+                path: 'items.product',
+                select: 'name price'
+            })
+            .sort({ createdAt: -1 });
+
+        // Lọc các sản phẩm không tồn tại
+        const validPayments = payments.map(payment => {
+            payment.items = payment.items.filter(item => item.product !== null);
+            return payment;
+        });
+
+        res.render('user/orderHistory', {
+            title: 'Lịch sử thanh toán',
+            payments: validPayments
+        });
+    } catch (error) {
+        console.error('Error fetching payment history:', error.message);
+        res.status(500).send('Đã xảy ra lỗi khi tải lịch sử thanh toán.');
+    }
+};
+
 // Export các hàm xử lý
 module.exports = {
     createPayment,
     getPaymentPreview,
     getPaymentById,
-    deletePayment
+    deletePayment,
+    getPaymentHistory
 };

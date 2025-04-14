@@ -21,9 +21,6 @@ div.container(style='max-width: 960px;')
           else
             li.nav-item
               a.nav-link(href='#') No menus available
-          if user
-            li.nav-item
-              a.nav-link(href='/vouchers/user') VouchersXEM
         ul.navbar-nav
           li.nav-item
             a.btn.btn-danger.ms-2(href='/favorites', title='Favorites')
@@ -39,6 +36,8 @@ div.container(style='max-width: 960px;')
               ul.dropdown-menu.dropdown-menu-end(aria-labelledby='userDropdown')
                 li
                   a.dropdown-item(href='#', data-bs-toggle="modal", data-bs-target="#userInfoModal") Profile
+                li
+                  a.dropdown-item(href='/payments/history') Order History
                 li
                   form(action='/auth/logout', method='POST')
                     button.dropdown-item(type='submit') Logout
