@@ -1,8 +1,7 @@
 extends layout
 
 block content
-  .container.mt-5
-    h1.text-center.mb-5.text-primary.fw-bold Giỏ hàng của bạn
+  h1.text-center.mt-4 Giỏ hàng của bạn
 
   if cartItems.length > 0
     .cart-container
@@ -52,79 +51,94 @@ block scripts
         }
       };
 
-      document.querySelectorAll('.cart-item').forEach(cartItem => {
-        const productId = cartItem.dataset.productId;
-        const decreaseBtn = cartItem.querySelector('.decrease-quantity');
-        const increaseBtn = cartItem.querySelector('.increase-quantity');
-        const quantitySpan = cartItem.querySelector('.quantity');
-        const checkbox = cartItem.querySelector('.choose-item');
-        const removeBtn = cartItem.querySelector('.remove-item');
+      const attachEventListeners = () => {
+        document.querySelectorAll('.cart-item').forEach(cartItem => {
+          const productId = cartItem.dataset.productId;
+          const decreaseBtn = cartItem.querySelector('.decrease-quantity');
+          const increaseBtn = cartItem.querySelector('.increase-quantity');
+          const quantitySpan = cartItem.querySelector('.quantity');
+          const checkbox = cartItem.querySelector('.choose-item');
+          const removeBtn = cartItem.querySelector('.remove-item');
 
-        const updateCart = (newQuantity, isChoosed) => {
-          fetch(`/carts/${userId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              productId,
-              quantity: newQuantity,
-              isChoosed
-            })
-          }).then(res => {
-            if (!res.ok) {
-              return res.json().then(data => { throw new Error(data.message); });
-            }
-            return res.json();
-          }).then(data => {
-            console.log('Cập nhật thành công:', data);
-            quantitySpan.textContent = newQuantity;
-            updateTotal();
-          }).catch(err => {
-            console.error('Lỗi khi cập nhật giỏ hàng:', err.message);
-          });
-        };
+          // Xóa các sự kiện cũ trước khi gắn sự kiện mới
+          decreaseBtn.replaceWith(decreaseBtn.cloneNode(true));
+          increaseBtn.replaceWith(increaseBtn.cloneNode(true));
+          checkbox.replaceWith(checkbox.cloneNode(true));
+          removeBtn.replaceWith(removeBtn.cloneNode(true));
 
-        increaseBtn.addEventListener('click', () => {
-          const currentQty = parseInt(quantitySpan.textContent);
-          const newQty = currentQty + 1;
-          updateCart(newQty, checkbox.checked);
-        });
+          const newDecreaseBtn = cartItem.querySelector('.decrease-quantity');
+          const newIncreaseBtn = cartItem.querySelector('.increase-quantity');
+          const newCheckbox = cartItem.querySelector('.choose-item');
+          const newRemoveBtn = cartItem.querySelector('.remove-item');
 
-        decreaseBtn.addEventListener('click', () => {
-          const currentQty = parseInt(quantitySpan.textContent);
-          if (currentQty > 1) {
-            const newQty = currentQty - 1;
-            updateCart(newQty, checkbox.checked);
-          }
-        });
-
-        checkbox.addEventListener('change', () => {
-          const currentQty = parseInt(quantitySpan.textContent);
-          updateCart(currentQty, checkbox.checked);
-        });
-
-        removeBtn.addEventListener('click', () => {
-          if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-            fetch(`/carts/${userId}/${productId}`, {
-              method: 'DELETE'
+          const updateCart = (newQuantity, isChoosed) => {
+            fetch(`/carts/${userId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                productId,
+                quantity: newQuantity,
+                isChoosed
+              })
             }).then(res => {
               if (!res.ok) {
                 return res.json().then(data => { throw new Error(data.message); });
               }
-              cartItem.remove();
-
+              return res.json();
+            }).then(data => {
+              console.log('Cập nhật thành công:', data);
+              quantitySpan.textContent = newQuantity;
               updateTotal();
-
-              if (document.querySelectorAll('.cart-item').length === 0) {
-                document.querySelector('.cart-summary').innerHTML = '<p>Giỏ hàng của bạn đang trống.</p>';
-              }
             }).catch(err => {
-              console.error('Lỗi khi xóa sản phẩm:', err.message);
+              console.error('Lỗi khi cập nhật giỏ hàng:', err.message);
             });
-          }
+          };
+
+          newIncreaseBtn.addEventListener('click', () => {
+            const currentQty = parseInt(quantitySpan.textContent);
+            const newQty = currentQty + 1;
+            updateCart(newQty, newCheckbox.checked);
+          });
+
+          newDecreaseBtn.addEventListener('click', () => {
+            const currentQty = parseInt(quantitySpan.textContent);
+            if (currentQty > 1) {
+              const newQty = currentQty - 1;
+              updateCart(newQty, newCheckbox.checked);
+            }
+          });
+
+          newCheckbox.addEventListener('change', () => {
+            const currentQty = parseInt(quantitySpan.textContent);
+            updateCart(currentQty, newCheckbox.checked);
+          });
+
+          newRemoveBtn.addEventListener('click', () => {
+            if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+              fetch(`/carts/${userId}/${productId}`, {
+                method: 'DELETE'
+              }).then(res => {
+                if (!res.ok) {
+                  return res.json().then(data => { throw new Error(data.message); });
+                }
+                cartItem.remove();
+
+                updateTotal();
+
+                if (document.querySelectorAll('.cart-item').length === 0) {
+                  document.querySelector('.cart-summary').innerHTML = '<p>Giỏ hàng của bạn đang trống.</p>';
+                }
+              }).catch(err => {
+                console.error('Lỗi khi xóa sản phẩm:', err.message);
+              });
+            }
+          });
         });
-      });
+      };
+
+      attachEventListeners();
 
       document.getElementById('checkoutBtn').addEventListener('click', () => {
         window.location.href = `/payments/preview/${userId}`;
@@ -132,51 +146,3 @@ block scripts
 
       updateTotal();
     });
-
-    if cartItems.length > 0
-      .row.g-4
-        each item in cartItems
-          .col-md-6.col-lg-4
-            .card.shadow-sm.h-100
-              img.card-img-top(src=item.product.imgURL, alt=item.product.name, style="height: 250px; object-fit: cover;")
-              .card-body.d-flex.flex-column.justify-content-between
-                .mb-2
-                  h5.card-title.text-truncate(style="max-width: 100%")= item.product.name
-                  p.card-text.mb-1 Giá: 
-                    span.text-danger.fw-bold #{item.product.price.toLocaleString()} VND
-                  p.card-text.mb-1 Số lượng: 
-                    span.fw-medium= item.quantity
-                  p.card-text Tổng: 
-                    span.text-success.fw-bold #{(item.product.price * item.quantity * (1 - (item.product.discount || 0) / 100)).toFixed(2).toLocaleString()} VND
-                form.mt-3(method="POST", action=`/carts/remove/${item.product._id}`)
-                  button.btn.btn-outline-danger.btn-sm.w-100(type="submit")
-                    i.fas.fa-trash-alt.me-2
-                    | Xóa khỏi giỏ hàng
-
-      .cart-summary.mt-5.p-4.bg-light.rounded.shadow-sm
-        h3.text-end Tổng giá trị giỏ hàng: 
-          span.text-success.fw-bold #{totalPrice.toFixed(2).toLocaleString()} VND
-        form.text-end.mt-3(method="POST", action="/checkout")
-          button.btn.btn-success.btn-lg(type="submit")
-            i.fas.fa-credit-card.me-2
-            | Thanh toán
-    else
-      p.text-center.mt-4.text-muted Không có sản phẩm nào trong giỏ hàng.
-
-block styles
-  style.
-    body {
-      background-color: #f8f9fa;
-    }
-
-    .card-title {
-      font-size: 1.1rem;
-    }
-
-    .card-text {
-      font-size: 0.95rem;
-    }
-
-    .cart-summary h3 {
-      font-size: 1.5rem;
-    }

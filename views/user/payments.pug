@@ -31,16 +31,6 @@ block content
             td(colspan="3").text-end Giá cuối cùng:
             td.text-primary #{finalPrice.toLocaleString('vi-VN')} VND
 
-      // Voucher Section
-      .voucher-section.mt-4
-        h4.text-center.mb-3 Nhập mã voucher
-        each menu in menus
-          .voucher-item.d-flex.align-items-center.mb-2
-            span.flex-grow-1= menu.name
-            button.btn.btn-secondary.decrease-voucher(type="button", data-id=menu._id) -
-            input.voucher-quantity(type="number", name="voucherCodes[#{menu._id}]", value="0", min="0", readonly)
-            button.btn.btn-secondary.increase-voucher(type="button", data-id=menu._id) +
-
       .actions.mt-4.text-center
         button.btn.btn-primary(type="submit") Xác nhận thanh toán
     .text-center.mt-3
@@ -50,23 +40,4 @@ block content
 
 block scripts
   script.
-    document.addEventListener('DOMContentLoaded', () => {
-      // Xử lý sự kiện tăng/giảm số lượng voucher
-      document.querySelectorAll('.increase-voucher').forEach(button => {
-        button.addEventListener('click', () => {
-          const input = button.previousElementSibling;
-          const currentValue = parseInt(input.value);
-          input.value = currentValue + 1;
-        });
-      });
-
-      document.querySelectorAll('.decrease-voucher').forEach(button => {
-        button.addEventListener('click', () => {
-          const input = button.nextElementSibling;
-          const currentValue = parseInt(input.value);
-          if (currentValue > 0) {
-            input.value = currentValue - 1;
-          }
-        });
-      });
-    });
+    
