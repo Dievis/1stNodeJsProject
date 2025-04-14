@@ -4,11 +4,26 @@ const { Voucher, RedeemedVoucher } = require('../schemas/voucher');
 const getAllVouchers = async (req, res) => {
     try {
         const vouchers = await Voucher.find();
-        res.render('admin/vouchers', {
-            title: 'Quản lý phiếu giảm giá',
-            vouchers,
-            user: req.user
-        });
+
+        // Kiểm tra vai trò của người dùng
+        if (req.user.role === 'admin') {
+            // Nếu là admin, render giao diện admin
+            res.render('admin/vouchers', {
+                title: 'Quản lý phiếu giảm giá',
+                vouchers,
+                user: req.user
+            });
+        } else if (req.user.role === 'user') {
+            // Nếu là user, render giao diện user
+            res.render('user/vouchers', {
+                title: 'Danh sách Voucher',
+                vouchers,
+                user: req.user
+            });
+        } else {
+            // Nếu không có quyền, trả về lỗi 403
+            res.status(403).send({ success: false, message: 'Bạn không có quyền truy cập.' });
+        }
     } catch (error) {
         console.error('Lỗi khi lấy danh sách mã giảm giá:', error.message);
         res.status(500).send({ success: false, message: 'Không thể lấy mã giảm giá.' });
@@ -139,6 +154,66 @@ const getRedeemedVouchers = async (req, res) => {
     }
 };
 
+// Lấy danh sách voucher của người dùng
+const getUserVouchers = async (req, res) => {
+    try {
+        const userId = req.user._id; // Lấy ID người dùng từ thông tin đăng nhập
+        const redeemedVouchers = await RedeemedVoucher.find({ user: userId }).select('voucher');
+        const redeemedVoucherIds = redeemedVouchers.map(rv => rv.voucher);
+
+        // Lấy danh sách voucher chưa sử dụng
+        const availableVouchers = await Voucher.find({
+            _id: { $nin: redeemedVoucherIds }, // Loại bỏ các voucher đã sử dụng
+            isActive: true, // Chỉ lấy các voucher đang hoạt động
+            expirationDate: { $gte: new Date() } // Chỉ lấy các voucher chưa hết hạn
+        });
+
+        res.render('user/vouchers', {
+            title: 'Danh sách Voucher',
+            vouchers: availableVouchers,
+            user: req.user
+        });
+    } catch (error) {
+        console.error('Error fetching user vouchers:', error.message);
+        res.status(500).render('shared/error', {
+            title: 'Lỗi',
+            message: 'Không thể lấy danh sách voucher.',
+            error: req.app.get('env') === 'development' ? error : {}
+        });
+    }
+};
+
+const useVoucher = async (req, res) => {
+    try {
+        const userId = req.user._id; // Lấy ID người dùng từ thông tin đăng nhập
+        const { voucherId } = req.body;
+
+        // Kiểm tra voucher có tồn tại không
+        const voucher = await Voucher.findById(voucherId);
+        if (!voucher) {
+            return res.status(404).json({ success: false, message: 'Voucher không tồn tại.' });
+        }
+
+        // Kiểm tra xem voucher đã được sử dụng chưa
+        const alreadyRedeemed = await RedeemedVoucher.findOne({ user: userId, voucher: voucherId });
+        if (alreadyRedeemed) {
+            return res.status(400).json({ success: false, message: 'Voucher đã được sử dụng.' });
+        }
+
+        // Đánh dấu voucher là đã sử dụng
+        const redeemedVoucher = new RedeemedVoucher({
+            user: userId,
+            voucher: voucherId
+        });
+        await redeemedVoucher.save();
+
+        res.status(200).json({ success: true, message: 'Voucher đã được sử dụng thành công!' });
+    } catch (error) {
+        console.error('Error using voucher:', error.message);
+        res.status(500).json({ success: false, message: 'Lỗi khi sử dụng voucher.' });
+    }
+};
+
 module.exports = {
     getAllVouchers,
     getVoucher, // Xuất thêm hàm này để lấy voucher theo ID
@@ -147,5 +222,7 @@ module.exports = {
     updateVoucher,
     getAvailableVouchers,
     redeemVoucher,
-    getRedeemedVouchers
+    getRedeemedVouchers,
+    getUserVouchers,
+    useVoucher
 };

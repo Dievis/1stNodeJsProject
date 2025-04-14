@@ -27,7 +27,9 @@ div.container(style='max-width: 960px;')
         else
           li.nav-item
             a.nav-link(href='#') No menus available
-
+        if user
+          li.nav-item
+            a.nav-link(href='/vouchers/user') VouchersXEM
       // Menu bên phải
       ul.navbar-nav
         // Nút yêu thích (chỉ icon trái tim)
