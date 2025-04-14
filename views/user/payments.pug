@@ -4,7 +4,7 @@ block content
   h1.text-center.mt-4 Xác nhận thanh toán
 
   if selectedItems && selectedItems.length > 0
-    form(method="POST", action="/payments/confirm")
+    form(method="POST", action=`/payments/${userId}`)
       table.table.table-bordered.mt-4
         thead
           tr

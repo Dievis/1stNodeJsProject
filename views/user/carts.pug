@@ -24,6 +24,12 @@ block content
     .cart-summary.mt-4.text-center
       h3 Tổng giá trị giỏ hàng: #{totalPrice.toFixed(2)} VND
       button.btn.btn-success.mt-3#checkoutBtn(type="button") Thanh toán
+
+    // Thêm nút Áp mã Voucher
+    .voucher-section.mt-4.text-center
+      button.btn.btn-primary#applyVoucherBtn(type="button") Áp mã Voucher
+      .voucher-list.mt-3.hidden
+        ul#voucherList
   else
     p.text-center.mt-4 Không có sản phẩm nào trong giỏ hàng.
 
@@ -32,6 +38,8 @@ block scripts
     document.addEventListener('DOMContentLoaded', () => {
       const userId = "#{user._id}";
       const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
+      let selectedVouchers = []; // Danh sách voucher được chọn
 
       const updateTotal = () => {
         let total = 0;
@@ -141,8 +149,93 @@ block scripts
       attachEventListeners();
 
       document.getElementById('checkoutBtn').addEventListener('click', () => {
-        window.location.href = `/payments/preview/${userId}`;
+        try {
+          // Chuyển hướng đến URL 
+          const url = `/payments/preview/${userId}`;
+          console.log('URL thanh toán:', url);
+
+          // Chuyển hướng đến URL
+          window.location.href = url;
+        } catch (error) {
+          console.error('Lỗi khi thực hiện thanh toán:', error.message);
+        }
       });
 
       updateTotal();
+
+      const applyVoucherBtn = document.getElementById('applyVoucherBtn');
+      const voucherListContainer = document.querySelector('.voucher-list');
+      const voucherList = document.getElementById('voucherList');
+      const applySelectedVouchersBtn = document.getElementById('applySelectedVouchersBtn');
+
+      // Hiển thị danh sách voucher
+      applyVoucherBtn.addEventListener('click', async () => {
+        try {
+          // Xóa nội dung cũ trước khi gắn sự kiện mới
+          voucherList.innerHTML = ''; // Đảm bảo danh sách voucher không bị trùng lặp
+          selectedVouchers = []; // Reset danh sách voucher được chọn
+
+          // Lấy danh sách voucher từ server
+          const response = await fetch(`/vouchers/available/${userId}`);
+          if (!response.ok) {
+            throw new Error('Không thể lấy danh sách voucher.');
+          }
+          const vouchers = await response.json();
+
+          // Kiểm tra nếu danh sách voucher đã tồn tại, không hiển thị lại
+          const existingVoucherCodes = Array.from(voucherList.querySelectorAll('button')).map(
+            button => button.dataset.id
+          );
+
+          vouchers.forEach(voucher => {
+            if (!existingVoucherCodes.includes(voucher.code)) {
+              // Chỉ thêm voucher nếu chưa tồn tại trong danh sách
+              const button = document.createElement('button');
+              button.textContent = `${voucher.name} - ${voucher.code} (${voucher.discountPercentage}% giảm tối đa ${voucher.maximumDiscount} VND)`;
+              button.dataset.id = voucher.code; // Sử dụng mã voucher (code)
+              button.classList.add('voucher-btn', 'btn', 'btn-success', 'btn-sm', 'm-2');
+              button.style.backgroundColor = '#d4edda'; // Màu xanh lá cây nhạt
+
+              // Thêm sự kiện click cho nút voucher
+              button.addEventListener('click', async () => {
+                try {
+                  if (selectedVouchers.includes(voucher.code)) {
+                    // Nếu voucher đã được chọn, bỏ chọn  
+                    selectedVouchers = selectedVouchers.filter(code => code !== voucher.code);
+                    button.style.backgroundColor = '#d4edda'; // Chuyển về màu xanh lá cây nhạt
+                  } else {
+                    // Nếu voucher chưa được chọn, thêm vào danh sách
+                    selectedVouchers.push(voucher.code);
+                    button.style.backgroundColor = '#28a745'; // Chuyển sang màu xanh lá cây đậm
+                  }
+
+                  // Gửi danh sách voucher được chọn đến server
+                  const response = await fetch(`/carts/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ vouchers: selectedVouchers })
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('Lỗi khi cập nhật danh sách voucher.');
+                  }
+
+                  const data = await response.json();
+                  console.log('Danh sách voucher đã được cập nhật:', data.cart.vouchers);
+                } catch (error) {
+                  console.error('Lỗi khi cập nhật danh sách voucher:', error.message);
+                }
+              });
+
+              voucherList.appendChild(button);
+            }
+          });
+
+          voucherListContainer.classList.remove('hidden'); // Hiển thị danh sách voucher
+        } catch (error) {
+          console.error('Lỗi khi lấy danh sách voucher:', error.message);
+        }
+      });
     });

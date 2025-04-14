@@ -103,32 +103,36 @@ exports.addToCart = async (req, res) => {
 exports.updateCartItem = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { productId, quantity, isChoosed } = req.body;
+        const { productId, quantity, isChoosed, vouchers } = req.body; // Nhận danh sách voucher từ request body
 
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             return res.status(404).json({ success: false, message: 'Cart not found' });
         }
 
+        // Cập nhật sản phẩm trong giỏ hàng
         const item = cart.items.find(item => item.product.toString() === productId);
-        if (!item) {
-            return res.status(404).json({ success: false, message: 'Product not found in cart' });
+        if (item) {
+            if (quantity !== undefined) {
+                item.quantity = quantity;
+            }
+            if (isChoosed !== undefined) {
+                item.isChoosed = isChoosed;
+            }
         }
 
-        if (quantity !== undefined) {
-            item.quantity = quantity;
+        // Cập nhật danh sách voucher được chọn
+        if (vouchers !== undefined) {
+            cart.vouchers = vouchers; // Ghi đè danh sách voucher
         }
 
-        if (isChoosed !== undefined) {
-            item.isChoosed = isChoosed;
-        }
+        // Cập nhật tổng giá tiền
         cart.totalPrice = cart.items.reduce((total, item) => {
             if (item.isChoosed) {
                 return total + (item.price * item.quantity);
             }
             return total;
         }, 0);
-        
 
         await cart.save();
         res.status(200).json({ success: true, cart });

@@ -34,6 +34,7 @@ const cartSchema = mongoose.Schema({
         type: Number,
         default: 0 
     },
+    vouchers: [String], // Thêm mảng vouchers để lưu mã voucher được chọn
     isCheckedOut: {
         type: Boolean,
         default: false 

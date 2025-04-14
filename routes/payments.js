@@ -3,7 +3,7 @@ const router = express.Router();
 const paymentController = require('../controllers/payments');
 
 // Tạo thanh toán
-router.post('/', paymentController.createPayment);
+router.post('/:userId', paymentController.createPayment);
 
 // Lấy các sản phẩm được chọn từ giỏ hàng
 router.get('/preview/:userId', paymentController.getPaymentPreview);
