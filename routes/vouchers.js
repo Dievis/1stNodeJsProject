@@ -7,19 +7,17 @@ const {
     getAllVouchers,
     getAvailableVouchers,
     redeemVoucher,
-    getRedeemedVouchers,
-    getUserVouchers,
-    useVoucher
+    getRedeemedVouchers
 } = require('../controllers/voucher');
 let { check_authentication, check_authorization } = require('../utils/check_auth');
 
 const router = express.Router();
 
 // Lấy danh sách tất cả các voucher
-router.get('/', check_authentication, getAllVouchers);
+router.get('/', check_authentication, check_authorization(["admin", "mod"]), getAllVouchers);
 
 // Lấy voucher theo ID (dùng cho form sửa voucher)
-router.get('/:id', check_authentication, check_authorization(["admin", "mod"]), getVoucher);
+router.get('/:id', check_authentication, getVoucher);
 
 // Thêm voucher
 router.post('/', check_authentication, check_authorization(["admin", "mod"]), addVoucher);
@@ -39,10 +37,5 @@ router.post('/redeem', redeemVoucher);
 // Lấy danh sách voucher đã sử dụng
 router.get('/redeemed/:userId', getRedeemedVouchers);
 
-// Route: Hiển thị danh sách voucher cho user
-router.get('/user', check_authentication, getUserVouchers);
-
-// Route: Sử dụng voucher
-router.post('/use', check_authentication, useVoucher);
 
 module.exports = router;
