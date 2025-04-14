@@ -99,10 +99,10 @@ app.use(function (err, req, res, next) {
 });
 
 app.use((err, req, res, next) => {
-    console.error(err.stack); // Log lỗi chi tiết
-    res.status(err.status || 500).render('error', {
-        title: 'Error',
-        message: err.message || 'Đã xảy ra lỗi trên server.',
+    console.error(err.stack);
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
         error: req.app.get('env') === 'development' ? err : {}
     });
 });
