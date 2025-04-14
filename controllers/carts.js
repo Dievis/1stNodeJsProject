@@ -1,8 +1,8 @@
 //- filepath: d:\Github\TPD\1stNodeJsProject\controllers\carts.js
 
 const Cart = require('../schemas/cart');
-const Product = require('../schemas/product');
-var menuController = require('../controllers/menus');
+const Product = require('../schemas/product'); // Import model Product
+const menuController = require('../controllers/menus');
 
 exports.getCartByUser = async (req, res) => {
     try {
@@ -10,7 +10,7 @@ exports.getCartByUser = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Unauthorized: User not logged in' });
         }
         const userId = req.user._id; 
-        const cart = await Cart.findOne({ user: userId }).populate('items.product'); 
+        const cart = await Cart.findOne({ user: userId }).populate('items.product'); // Populate product
 
         if (!cart || cart.items.length === 0) {
             return res.render('user/carts', {
@@ -23,13 +23,13 @@ exports.getCartByUser = async (req, res) => {
 
         let menus = await menuController.GetAllMenus();
         const totalPrice = cart.items.reduce((total, item) => {
-            return total + (item.price * item.quantity * (1 - item.discount / 100));
+            return total + (item.product.price * item.quantity);
         }, 0);
 
         res.render('user/carts', {
             title: 'Giỏ hàng',
             menus: menus,
-            cartItems: cart.items,
+            cartItems: cart.items, // Truyền cart.items vào view
             totalPrice: totalPrice, 
             user: req.user
         });
@@ -82,8 +82,7 @@ exports.addToCart = async (req, res) => {
             cart.items.push({
                 product: productId,
                 quantity,
-                price: product.price,
-                discount: product.discount || 0 
+                price: product.price
             });
         }
 

@@ -117,6 +117,12 @@ block scripts
 
       const useVoucherButtons = document.querySelectorAll('.btn-outline-primary');
       useVoucherButtons.forEach(btn => {
+        // Xóa tất cả các sự kiện click cũ trước khi gắn sự kiện mới
+        btn.replaceWith(btn.cloneNode(true));
+      });
+
+      // Gắn sự kiện click mới
+      document.querySelectorAll('.btn-outline-primary').forEach(btn => {
         btn.addEventListener('click', async () => {
           const voucherId = btn.getAttribute('data-id');
           const userId = '#{user._id}'; // Lấy userId từ server-side
