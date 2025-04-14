@@ -2,12 +2,16 @@ const express = require('express');
 const router = express.Router();
 const paymentController = require('../controllers/payments');
 
-router.post('/', paymentController.createPayment);
+// Tạo thanh toán
+router.post('/:userId', paymentController.createPayment);
 
+// Lấy các sản phẩm được chọn từ giỏ hàng
 router.get('/preview/:userId', paymentController.getPaymentPreview);
 
+// Lấy thông tin thanh toán
 router.get('/:id', paymentController.getPaymentById);
 
+// Xóa thanh toán
 router.delete('/:id', paymentController.deletePayment);
 
 module.exports = router;
