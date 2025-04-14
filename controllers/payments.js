@@ -5,6 +5,7 @@ const Cart = require('../schemas/cart');
 const Product = require('../schemas/product'); // Import schema Product
 const { Voucher, RedeemedVoucher } = require('../schemas/voucher'); // Import schema Voucher and RedeemedVoucher
 const { redeemVoucher } = require('./voucher'); // Import hàm redeemVoucher
+var menuController = require('../controllers/menus');
 
 // Tạo thanh toán
 const createPayment = async (req, res) => {
@@ -110,13 +111,27 @@ const getPaymentPreview = async (req, res) => {
         // Tìm giỏ hàng của người dùng và populate sản phẩm
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
         if (!cart) {
-            return res.status(404).json({ message: 'Cart not found' });
+            return res.render('user/payments', {
+                title: 'Xác nhận thanh toán',
+                selectedItems: [],
+                totalPrice: 0,
+                totalDiscount: 0,
+                finalPrice: 0,
+                message: 'Giỏ hàng không tồn tại'
+            });
         }
-
+        
         // Lọc các sản phẩm được chọn (isChoosed: true)
         const selectedItems = cart.items.filter(item => item.isChoosed);
         if (selectedItems.length === 0) {
-            return res.status(400).json({ message: 'No items selected for payment' });
+            return res.render('user/payments', {
+                title: 'Xác nhận thanh toán',
+                selectedItems: [],
+                totalPrice: 0,
+                totalDiscount: 0,
+                finalPrice: 0,
+                message: 'Không có sản phẩm nào được chọn để thanh toán'
+            });
         }
 
         // Tính tổng giá tiền của các sản phẩm được chọn
@@ -132,7 +147,7 @@ const getPaymentPreview = async (req, res) => {
             _id: { $nin: redeemedVoucherIds }, // Loại bỏ các voucher đã được người dùng sử dụng
             isActive: true // Chỉ lấy các voucher đang hoạt động
         });
-
+        let menus = await menuController.GetAllMenus();
         // Tính tổng tiền giảm giá dựa trên các voucher
         let totalDiscount = 0;
         for (const voucher of vouchers) {
@@ -146,15 +161,26 @@ const getPaymentPreview = async (req, res) => {
         // Tính tổng tiền sau khi đã trừ đi tổng tiền giảm giá
         const finalPrice = totalPrice - totalDiscount;
 
-        res.status(200).json({
-            message: 'Payment preview calculated successfully',
-            items: selectedItems,
-            totalPrice, // Tổng giá tiền ban đầu
-            totalDiscount, // Tổng tiền giảm giá
-            finalPrice // Tổng tiền sau khi giảm giá
+        // Render giao diện payments.pug
+        res.render('user/payments', {
+            title: 'Xác nhận thanh toán',
+            menus: menus,
+            selectedItems: selectedItems,
+            totalPrice: totalPrice,
+            totalDiscount: totalDiscount,
+            finalPrice: finalPrice,
+            message: null
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error in getPaymentPreview:', error.message);
+        res.status(500).render('user/payments', {
+            title: 'Xác nhận thanh toán',
+            selectedItems: [],
+            totalPrice: 0,
+            totalDiscount: 0,
+            finalPrice: 0,
+            message: 'Đã xảy ra lỗi khi xử lý thanh toán'
+        });
     }
 };
 
