@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\users.pug
-
 extends ../admin/layout
 
 block content
@@ -35,7 +33,6 @@ block content
     else
       p.text-center.text-muted Không có người dùng nào.
 
-  // Modal for adding user
   .modal#addUserModal(tabindex="-1" role="dialog")
     .modal-dialog.modal-dialog-centered(role="document")
       .modal-content
@@ -63,7 +60,6 @@ block content
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
           button.btn.btn-primary(type="submit") Thêm người dùng
 
-  // Modal for editing user
   .modal#editUserModal(tabindex="-1" role="dialog")
     .modal-dialog.modal-dialog-centered(role="document")
       .modal-content
@@ -92,7 +88,6 @@ block content
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
-      // Xóa người dùng
       document.querySelectorAll('.delete-user').forEach(button => {
         button.addEventListener('click', async (e) => {
           const row = e.target.closest('tr');
@@ -120,7 +115,6 @@ block scripts
         });
       });
 
-      // Sửa người dùng
       document.querySelectorAll('.edit-user').forEach(button => {
         button.addEventListener('click', (e) => {
           const row = e.target.closest('tr');
@@ -129,19 +123,16 @@ block scripts
           const email = row.children[1].innerText;
           const role = row.children[2].innerText;
 
-          // Điền thông tin vào modal
           const form = document.querySelector('#editUserForm');
           form.id.value = userId;
           form.username.value = username;
           form.email.value = email;
           form.role.value = role;
 
-          // Hiển thị modal
           $('#editUserModal').modal('show');
         });
       });
 
-      // Gửi yêu cầu thêm người dùng
       document.querySelector('#addUserForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -163,7 +154,7 @@ block scripts
           const result = await response.json();
           if (result.success) {
             alert('Thêm người dùng thành công!');
-            location.reload(); // Tải lại trang
+            location.reload(); 
           } else {
             alert('Thêm người dùng thất bại: ' + result.message);
           }
@@ -173,7 +164,6 @@ block scripts
         }
       });
 
-      // Gửi yêu cầu cập nhật người dùng
       document.querySelector('#editUserForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -195,7 +185,7 @@ block scripts
           const result = await response.json();
           if (result.success) {
             alert('Cập nhật người dùng thành công!');
-            location.reload(); // Tải lại trang
+            location.reload(); 
           } else {
             alert('Cập nhật người dùng thất bại: ' + result.message);
           }

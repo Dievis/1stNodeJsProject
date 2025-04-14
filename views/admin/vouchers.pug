@@ -4,13 +4,11 @@ block content
   .container.mt-5
     h1.text-center.mb-4 Quản lý Voucher
 
-    // Nút thêm voucher
     .d-flex.justify-content-between.mb-3
       button.btn.btn-primary(data-bs-toggle="modal", data-bs-target="#addVoucherModal")
         i.fas.fa-plus-circle.me-2
         | Thêm Voucher
 
-    // Bảng danh sách voucher
     if vouchers && vouchers.length > 0
       .table-responsive
         table.table.table-striped.table-hover
@@ -38,7 +36,6 @@ block content
     else
       p.text-center.text-muted Không có voucher nào.
 
-  // Modal thêm voucher
   .modal#addVoucherModal(tabindex="-1" role="dialog")
     .modal-dialog.modal-dialog-centered(role="document")
       .modal-content
@@ -67,7 +64,6 @@ block content
               button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
               button.btn.btn-primary(type="submit") Thêm Voucher
 
-  // Modal sửa voucher
   .modal#editVoucherModal(tabindex="-1" role="dialog")
     .modal-dialog.modal-dialog-centered(role="document")
       .modal-content
@@ -105,101 +101,107 @@ block content
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
-      // Thêm voucher
       const addVoucherForm = document.querySelector('#addVoucherForm');
       if (addVoucherForm) {
         addVoucherForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           const formData = new FormData(addVoucherForm);
           const body = Object.fromEntries(formData.entries());
+
           try {
             const response = await fetch('/vouchers', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(body)
+              body: JSON.stringify(body),
             });
+
             const result = await response.json();
-            if (result.message) {
-              alert('Voucher đã được thêm!');
+            if (response.ok) {
+              alert(result.message || 'Thêm voucher thành công');
               location.reload();
             } else {
-              alert('Thêm voucher thất bại: ' + result.error);
+              alert(result.message || 'Có lỗi xảy ra khi thêm voucher');
             }
-          } catch (error) {
-            console.error('Error adding voucher:', error);
+          } catch (err) {
+            console.error(err);
+            alert('Lỗi kết nối server');
           }
         });
       }
 
-      // Sửa voucher
-      const editVoucherForm = document.querySelector('#editVoucherForm');
-      document.querySelectorAll('.edit-voucher-btn').forEach((button) => {
+      const editVoucherButtons = document.querySelectorAll('.edit-voucher-btn');
+      const editForm = document.querySelector('#editVoucherForm');
+      editVoucherButtons.forEach(button => {
         button.addEventListener('click', async () => {
-          const voucherId = button.getAttribute('data-id');
+          const id = button.dataset.id;
           try {
-            const response = await fetch(`/vouchers/${voucherId}`);
+            const response = await fetch(`/vouchers/${id}`);
             const voucher = await response.json();
-            editVoucherForm.name.value = voucher.name;
-            editVoucherForm.code.value = voucher.code;
-            editVoucherForm.discountPercentage.value = voucher.discountPercentage;
-            editVoucherForm.maximumDiscount.value = voucher.maximumDiscount;
-            editVoucherForm.expirationDate.value = voucher.expirationDate.split('T')[0];
-            editVoucherForm.isActive.value = voucher.isActive ? 'true' : 'false';
-            editVoucherForm.id.value = voucher._id;
-          } catch (error) {
-            console.error('Error fetching voucher:', error);
+            if (response.ok) {
+              editForm.id.value = voucher._id;
+              editForm.name.value = voucher.name;
+              editForm.code.value = voucher.code;
+              editForm.discountPercentage.value = voucher.discountPercentage;
+              editForm.maximumDiscount.value = voucher.maximumDiscount;
+              editForm.expirationDate.value = new Date(voucher.expirationDate).toISOString().split('T')[0];
+              editForm.isActive.value = String(voucher.isActive);
+            } else {
+              alert('Không thể tải dữ liệu voucher');
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Lỗi khi tải dữ liệu voucher');
           }
         });
       });
 
-      editVoucherForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(editVoucherForm);
-        const body = Object.fromEntries(formData.entries());
-        const voucherId = body.id;
-        if (!voucherId) {
-          alert('Không tìm thấy ID của voucher.');
-          return;
-        }
-        try {
-          const response = await fetch(`/vouchers/${voucherId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-          });
-          const result = await response.json();
-          if (result.success) {
-            alert('Voucher đã được cập nhật!');
-            location.reload();
-          } else {
-            alert('Cập nhật voucher thất bại: ' + result.message);
+      if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(editForm);
+          const body = Object.fromEntries(formData.entries());
+          try {
+            const response = await fetch(`/vouchers/${body.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body),
+            });
+            const result = await response.json();
+            if (response.ok) {
+              alert(result.message || 'Cập nhật voucher thành công');
+              location.reload();
+            } else {
+              alert(result.message || 'Có lỗi xảy ra khi cập nhật');
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Lỗi kết nối server');
           }
-        } catch (error) {
-          console.error('Error updating voucher:', error);
-          alert('Đã xảy ra lỗi khi cập nhật voucher.');
-        }
-      });
+        });
+      }
 
-      // Xóa voucher
-      document.querySelectorAll('.delete-voucher-btn').forEach((button) => {
+      const deleteButtons = document.querySelectorAll('.delete-voucher-btn');
+      deleteButtons.forEach(button => {
         button.addEventListener('click', async () => {
-          const voucherId = button.getAttribute('data-id');
-          if (confirm('Bạn có chắc chắn muốn xóa voucher này?')) {
+          const id = button.dataset.id;
+          if (confirm('Bạn có chắc muốn xóa voucher này?')) {
             try {
-              const response = await fetch(`/vouchers/${voucherId}`, {
-                method: 'DELETE'
+              const response = await fetch(`/vouchers/${id}`, {
+                method: 'DELETE',
               });
               const result = await response.json();
-              if (result.message) {
-                alert('Voucher đã bị xóa!');
+              if (response.ok) {
+                alert('Đã xóa thành công');
                 location.reload();
               } else {
-                alert('Xóa voucher thất bại: ' + result.error);
+                alert(result.message || 'Không thể xóa voucher');
               }
-            } catch (error) {
-              console.error('Error deleting voucher:', error);
+            } catch (err) {
+              console.error(err);
+              alert('Lỗi kết nối server');
             }
           }
         });
       });
     });
+

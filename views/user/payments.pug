@@ -31,7 +31,6 @@ block content
             td(colspan="3").text-end Giá cuối cùng:
             td.text-primary #{finalPrice.toLocaleString('vi-VN')} VND
 
-      // Voucher Section
       .voucher-section.mt-4
         h4.text-center.mb-3 Nhập mã voucher
         each menu in menus
@@ -51,7 +50,6 @@ block content
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
-      // Xử lý sự kiện tăng/giảm số lượng voucher
       document.querySelectorAll('.increase-voucher').forEach(button => {
         button.addEventListener('click', () => {
           const input = button.previousElementSibling;

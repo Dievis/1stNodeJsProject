@@ -1,4 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\routes\auth.js
 var express = require('express');
 var router = express.Router();
 var userController = require('../controllers/users');
@@ -19,7 +18,6 @@ let axios = require('axios')
 let fs = require('fs')
 
 
-// ======== Thêm các route render giao diện PUG ========
 router.get('/login', async function (req, res) {
     let menus = await menuController.GetAllMenus();
     console.log('Menus:', menus); 
@@ -61,7 +59,6 @@ router.get('/resetpassword/:token', async function (req, res) {
     res.render('shared/resetPassword', { token: req.params.token });
 });
 
-// ======== API ========
 router.post('/signup', SignUpValidator, validate, async function (req, res, next) {
     try {
         let newUser = await userController.CreateAnUser(
@@ -109,7 +106,7 @@ router.post('/login',  LoginValidator, validate, async function (req, res, next)
         res.cookie('token', token, {
             httpOnly: true,
             signed: true, 
-            maxAge: 60 * 60 * 1000 // 1 giờ
+            maxAge: 60 * 60 * 1000 
         });
 
         const user = await userSchema.findById(user_id).populate('role');
@@ -126,7 +123,6 @@ router.post('/login',  LoginValidator, validate, async function (req, res, next)
                 }
             });
         } else {
-            // Xử lý giao diện web
             if (user.role && user.role.name === 'admin') {
                 console.log('Admin login successful:', user);
                 return res.redirect('/admin/dashboard');
@@ -151,7 +147,7 @@ router.post('/login',  LoginValidator, validate, async function (req, res, next)
     }
 });
 router.post('/logout', function (req, res, next) {
-    CreateCookieResponse(res, 'token', "", Date.now()); // Xóa token
+    CreateCookieResponse(res, 'token', "", Date.now()); 
     return res.redirect('/auth/login');
 });
 router.get('/logout', function (req, res, next) {
@@ -184,7 +180,7 @@ router.post('/forgotpassword', ForgotPasswordValidator, validate, async function
 
         const resetToken = crypto.randomBytes(32).toString('hex');
         user.resetPasswordToken = resetToken;
-        user.resetPasswordTokenExp = new Date(Date.now() + 10 * 60 * 1000); // Token hết hạn sau 10 phút
+        user.resetPasswordTokenExp = new Date(Date.now() + 10 * 60 * 1000); 
         await user.save();
 
         const resetUrl = `http://localhost:3000/auth/resetpassword/${user.resetPasswordToken}`;        
@@ -244,7 +240,6 @@ router.post('/resetpassword/:token', async function (req, res, next) {
             }
         }
 
-        // Cập nhật mật khẩu mới
         user.password = await bcrypt.hash(password, 10);
         user.resetPasswordToken = null;
         user.resetPasswordTokenExp = null;
@@ -271,7 +266,6 @@ router.post('/resetpassword/:token', async function (req, res, next) {
     }
 });
 
-//storage
 let avatarDir = path.join(__dirname, "../avatars");
 let authURL = "http://localhost:3000/auth/avatars/";
 let serverCDN = 'http://localhost:4000/upload';
@@ -295,7 +289,6 @@ let upload = multer({
     }
 })
 
-//upload
 router.post("/change_avatar", check_authentication, upload.single('avatar'), async function (req, res, next) {
     let imgPath = path.join(avatarDir, req.file.filename);
     let newform = new FormData();

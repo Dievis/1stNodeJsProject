@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\routes\roles.js
-
 var express = require('express');
 var router = express.Router();
 var roleController = require('../controllers/roles')
@@ -14,10 +12,8 @@ router.get('/', check_authentication, check_authorization(constants.ADMIN_PERMIS
     let roles = await roleController.GetAllRoles();
 
     if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
-      // Trả về JSON nếu yêu cầu là API
       return CreateSuccessResponse(res, 200, roles);
     } else {
-      // Render giao diện với danh sách vai trò
       return res.render('admin/roles', {
         title: 'Quản lý Vai Trò',
         roles: roles,
@@ -30,7 +26,6 @@ router.get('/', check_authentication, check_authorization(constants.ADMIN_PERMIS
       // Trả về JSON nếu yêu cầu là API
       return CreateErrorResponse(res, 500, error.message);
     } else {
-      // Render giao diện với thông báo lỗi
       return res.render('shared/error', {
         title: 'Error',
         message: 'Lỗi khi lấy danh sách vai trò: ' + error.message,
@@ -45,10 +40,8 @@ router.post('/', check_authentication, check_authorization(constants.ADMIN_PERMI
     let newRole = await roleController.CreateARole(body.name);
 
     if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
-      // Trả về JSON nếu yêu cầu là API
       return CreateSuccessResponse(res, 200, newRole);
     } else {
-      // Render giao diện với thông báo thành công
       return res.render('admin/roles', {
         title: 'Quản lý Vai Trò',
         success: 'Thêm vai trò thành công!',
@@ -58,10 +51,8 @@ router.post('/', check_authentication, check_authorization(constants.ADMIN_PERMI
     }
   } catch (error) {
     if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
-      // Trả về JSON nếu yêu cầu là API
       return CreateErrorResponse(res, 404, error.message);
     } else {
-      // Render giao diện với thông báo lỗi
       return res.render('admin/roles', {
         title: 'Quản lý Vai Trò',
         error: 'Thêm vai trò thất bại: ' + error.message,

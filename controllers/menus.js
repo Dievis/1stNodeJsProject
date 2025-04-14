@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\menus.js
-
 const menuSchema = require('../schemas/menu');
 const slugify = require('slugify');
 
@@ -62,7 +60,7 @@ module.exports = {
         try {
             const updatedObj = {
                 text: body.text,
-                parent: body.parent || null // Nếu không có menu cha, đặt parent là null
+                parent: body.parent || null 
             };
 
             return await menuSchema.findByIdAndUpdate(id, updatedObj, { new: true });

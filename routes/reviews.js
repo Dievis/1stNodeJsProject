@@ -1,11 +1,8 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\routes\reviews.js
-
 const express = require('express');
 const router = express.Router();
 const { check_authentication } = require('../utils/check_auth');
 const { addReview, getReviewsByProduct, updateReview, deleteReview } = require('../controllers/reviews');
 
-// Thêm review
 router.post('/', check_authentication, async (req, res) => {
     try {
         const { productId, rating, comment } = req.body;
@@ -17,7 +14,6 @@ router.post('/', check_authentication, async (req, res) => {
     }
 });
 
-// Lấy danh sách review của sản phẩm
 router.get('/:productId', async (req, res) => {
     try {
         const { productId } = req.params;
@@ -28,7 +24,6 @@ router.get('/:productId', async (req, res) => {
     }
 });
 
-// Cập nhật review
 router.put('/:reviewId', check_authentication, async (req, res) => {
     try {
         const { reviewId } = req.params;
@@ -40,7 +35,6 @@ router.put('/:reviewId', check_authentication, async (req, res) => {
     }
 });
 
-// Xóa review
 router.delete('/:reviewId', check_authentication, async (req, res) => {
     try {
         const { reviewId } = req.params;

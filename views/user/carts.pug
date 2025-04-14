@@ -1,30 +1,26 @@
 extends layout
 
 block content
-  .container.mt-5
-    h1.text-center.mb-5.text-primary.fw-bold Giỏ hàng của bạn
+  h1.text-center.mt-4 Giỏ hàng của bạn
 
   if cartItems.length > 0
     .cart-container
       each item in cartItems
-        if item.product
-          .cart-item(data-product-id=item.product._id)
-            img(src=item.product.imgURL alt=item.product.name width="100")
-            .product-info
-              h2= item.product.name
-              p Giá: #{item.product.price.toLocaleString()} VND
-              p Tổng: #{(item.product.price * item.quantity).toLocaleString()} VND
-            .actions
-              button.btn.btn-secondary.decrease-quantity(type="button") -
-              span.quantity.mx-2 #{item.quantity}
-              button.btn.btn-secondary.increase-quantity(type="button") +
-              button.btn.btn-danger.ms-3.remove-item(type="button") Xóa khỏi giỏ hàng
-            .checkbox.ms-3
-              label
-                input.choose-item(type="checkbox", checked=item.isChoosed)
-                |  Chọn sản phẩm
-        else
-          p.text-danger Sản phẩm không tồn tại hoặc đã bị xóa.
+        .cart-item(data-product-id=item.product._id)
+          img(src=item.product.imgURL alt=item.product.name width="100")
+          .product-info
+            h2= item.product.name
+            p Giá: #{item.product.price} VND
+            p Tổng: #{(item.product.price * item.quantity).toFixed(2)} VND
+          .actions
+            button.btn.btn-secondary.decrease-quantity(type="button") -
+            span.quantity.mx-2 #{item.quantity}
+            button.btn.btn-secondary.increase-quantity(type="button") +
+            button.btn.btn-danger.ms-3.remove-item(type="button") Xóa khỏi giỏ hàng
+          .checkbox.ms-3
+            label
+              input.choose-item(type="checkbox", checked=item.isChoosed)
+              |  Chọn sản phẩm
     .cart-summary.mt-4.text-center
       h3 Tổng giá trị giỏ hàng: #{totalPrice.toFixed(2)} VND
       button.btn.btn-success.mt-3#checkoutBtn(type="button") Thanh toán
@@ -135,51 +131,3 @@ block scripts
 
       updateTotal();
     });
-
-    if cartItems.length > 0
-      .row.g-4
-        each item in cartItems
-          .col-md-6.col-lg-4
-            .card.shadow-sm.h-100
-              img.card-img-top(src=item.product.imgURL, alt=item.product.name, style="height: 250px; object-fit: cover;")
-              .card-body.d-flex.flex-column.justify-content-between
-                .mb-2
-                  h5.card-title.text-truncate(style="max-width: 100%")= item.product.name
-                  p.card-text.mb-1 Giá: 
-                    span.text-danger.fw-bold #{item.product.price.toLocaleString()} VND
-                  p.card-text.mb-1 Số lượng: 
-                    span.fw-medium= item.quantity
-                  p.card-text Tổng: 
-                    span.text-success.fw-bold #{(item.product.price * item.quantity * (1 - (item.product.discount || 0) / 100)).toFixed(2).toLocaleString()} VND
-                form.mt-3(method="POST", action=`/carts/remove/${item.product._id}`)
-                  button.btn.btn-outline-danger.btn-sm.w-100(type="submit")
-                    i.fas.fa-trash-alt.me-2
-                    | Xóa khỏi giỏ hàng
-
-      .cart-summary.mt-5.p-4.bg-light.rounded.shadow-sm
-        h3.text-end Tổng giá trị giỏ hàng: 
-          span.text-success.fw-bold #{totalPrice.toFixed(2).toLocaleString()} VND
-        form.text-end.mt-3(method="POST", action="/checkout")
-          button.btn.btn-success.btn-lg(type="submit")
-            i.fas.fa-credit-card.me-2
-            | Thanh toán
-    else
-      p.text-center.mt-4.text-muted Không có sản phẩm nào trong giỏ hàng.
-
-block styles
-  style.
-    body {
-      background-color: #f8f9fa;
-    }
-
-    .card-title {
-      font-size: 1.1rem;
-    }
-
-    .card-text {
-      font-size: 0.95rem;
-    }
-
-    .cart-summary h3 {
-      font-size: 1.5rem;
-    }

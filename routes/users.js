@@ -1,5 +1,3 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\routes\users.js
-
 var express = require('express');
 var router = express.Router();
 let userController = require('../controllers/users')
@@ -7,15 +5,14 @@ let { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseH
 let{check_authentication,check_authorization} = require('../utils/check_auth');
 const constants = require('../utils/constants');
 
-/* GET users listing. */
 
 router.get('/', check_authentication, check_authorization(constants.MOD_PERMISSION), async function (req, res, next) {
   try {
-    let users = await userController.GetAllUser(); // Lấy danh sách người dùng từ controller
+    let users = await userController.GetAllUser(); 
     res.render('admin/users', {
       title: 'Quản lý người dùng',
-      users: users, // Truyền danh sách người dùng vào giao diện
-      user: res.locals.user // Thông tin người dùng hiện tại
+      users: users, 
+      user: res.locals.user 
     });
   } catch (error) {
     console.error('Error fetching users:', error.message);
@@ -35,7 +32,7 @@ router.post('/', async function (req, res, next) {
 });
 router.put('/:id', check_authentication, async function (req, res, next) {
   try {
-    const currentUser = req.user; // Lấy thông tin người dùng hiện tại từ middleware
+    const currentUser = req.user; 
     const updatedUser = await userController.UpdateAnUser(req.params.id, req.body, currentUser);
     res.status(200).json({ success: true, data: updatedUser });
   } catch (error) {

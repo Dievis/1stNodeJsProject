@@ -1,11 +1,8 @@
-//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\products.js
-
 const productSchema = require('../schemas/product');
 const categorySchema = require('../schemas/category');
 const slugify = require('slugify');
 const getReviewsByProduct = require('./reviews').getReviewsByProduct;
 
-// Lấy danh sách sản phẩm
 exports.getAllProducts = async (req, res) => {
     const { name = "", price = {} } = req.query;
 
@@ -33,27 +30,23 @@ exports.getAllProducts = async (req, res) => {
     }
 };
 
-// Lấy chi tiết sản phẩm
 exports.getProductById = async (req, res) => {
     try {
-        const productId = req.params.id; // Lấy productId từ URL
-        // Tìm sản phẩm trong cơ sở dữ liệu
+        const productId = req.params.id; 
         const product = await productSchema.findById(productId).populate('category');
 
-        // Nếu không tìm thấy sản phẩm
         if (!product) {
             return res.status(404).send({ success: false, message: 'Sản phẩm không tồn tại.' });
         }
 
-        const reviews = await getReviewsByProduct(productId); // Lấy danh sách review của sản phẩm
+        const reviews = await getReviewsByProduct(productId); 
 
-        // Trả về thông tin chi tiết sản phẩm
-        res.render('user/productDetail', { // Tạo view 'productDetail' và truyền product vào
-            title: `Chi tiết sản phẩm - ${product.name}`, // Sửa lỗi template string
+        res.render('user/productDetail', { 
+            title: `Chi tiết sản phẩm - ${product.name}`, 
             product: product,
-            user: req.user || null, // Đảm bảo req.user không bị undefined
-            reviews,   // Truyền danh sách review vào view
-            userFavorites: req.user?.favorites || [] // Sử dụng optional chaining để tránh lỗi
+            user: req.user || null, 
+            reviews,   
+            userFavorites: req.user?.favorites || [] 
         });
     } catch (error) {
         console.error('Error fetching product:', error.message);
@@ -61,9 +54,8 @@ exports.getProductById = async (req, res) => {
     }
 };
 
-// Tạo sản phẩm mới
 exports.createProduct = async (req, res) => {
-    const { name, price = 1000, quantity = 10, category } = req.body;
+    const { name, price = 1000, quantity = 10, category, discount = 0 } = req.body;
 
     try {
         const categoryFound = await categorySchema.findById(category);
@@ -75,7 +67,9 @@ exports.createProduct = async (req, res) => {
             name,
             price,
             quantity,
+            discount,
             category,
+            imgURL: req.file ? `/uploads/${req.file.filename}` : '', 
             slug: slugify(name, { lower: true })
         });
 
@@ -86,36 +80,29 @@ exports.createProduct = async (req, res) => {
     }
 };
 
-// Cập nhật sản phẩm
 exports.updateProduct = async (req, res) => {
-    const { name, price, quantity, category } = req.body;
+    const { name, price, quantity, category, discount } = req.body;
 
     try {
-        // Kiểm tra sản phẩm có tồn tại
         const product = await productSchema.findById(req.params.id);
         if (!product) {
             return res.status(404).send({ success: false, message: "Sản phẩm không tồn tại." });
-        }
-
-        // Kiểm tra trùng tên (trừ chính sản phẩm đang cập nhật)
-        if (name && name !== product.name) {
-            const existingProduct = await productSchema.findOne({ name });
-            if (existingProduct) {
-                return res.status(400).send({ success: false, message: "Tên sản phẩm đã tồn tại." });
-            }
         }
 
         const updatedObj = {};
         if (name) updatedObj.name = name;
         if (price) updatedObj.price = price;
         if (quantity) updatedObj.quantity = quantity;
-
+        if (discount) updatedObj.discount = discount;
         if (category) {
             const categoryFound = await categorySchema.findById(category);
             if (!categoryFound) {
                 return res.status(404).send({ success: false, message: "Không tìm thấy danh mục." });
             }
             updatedObj.category = category;
+        }
+        if (req.file) {
+            updatedObj.imgURL = `/uploads/${req.file.filename}`; 
         }
 
         const updatedProduct = await productSchema.findByIdAndUpdate(
@@ -131,16 +118,13 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
-// Xóa sản phẩm (xóa mềm)
 exports.deleteProduct = async (req, res) => {
     try {
-        // Kiểm tra sản phẩm có tồn tại
         const product = await productSchema.findById(req.params.id);
         if (!product) {
             return res.status(404).send({ success: false, message: "Sản phẩm không tồn tại." });
         }
 
-        // Xóa mềm sản phẩm
         const updatedProduct = await productSchema.findByIdAndUpdate(
             req.params.id,
             { isDeleted: true },
