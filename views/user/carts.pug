@@ -84,14 +84,12 @@ block scripts
           });
         };
 
-        // Tăng số lượng
         increaseBtn.addEventListener('click', () => {
           const currentQty = parseInt(quantitySpan.textContent);
           const newQty = currentQty + 1;
           updateCart(newQty, checkbox.checked);
         });
 
-        // Giảm số lượng
         decreaseBtn.addEventListener('click', () => {
           const currentQty = parseInt(quantitySpan.textContent);
           if (currentQty > 1) {
@@ -100,13 +98,11 @@ block scripts
           }
         });
 
-        // Thay đổi checkbox
         checkbox.addEventListener('change', () => {
           const currentQty = parseInt(quantitySpan.textContent);
           updateCart(currentQty, checkbox.checked);
         });
 
-        // Xóa khỏi giỏ hàng
         removeBtn.addEventListener('click', () => {
           if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
             fetch(`/carts/${userId}/${productId}`, {
@@ -115,13 +111,10 @@ block scripts
               if (!res.ok) {
                 return res.json().then(data => { throw new Error(data.message); });
               }
-              // Xóa sản phẩm khỏi giao diện mà không cần reload
               cartItem.remove();
 
-              // Cập nhật lại tổng giá trị giỏ hàng sau khi xóa sản phẩm
               updateTotal();
 
-              // Kiểm tra nếu giỏ hàng không còn sản phẩm nào, hiển thị thông báo
               if (document.querySelectorAll('.cart-item').length === 0) {
                 document.querySelector('.cart-summary').innerHTML = '<p>Giỏ hàng của bạn đang trống.</p>';
               }
@@ -132,12 +125,9 @@ block scripts
         });
       });
 
-      // Nút thanh toán – bạn xử lý sau
       document.getElementById('checkoutBtn').addEventListener('click', () => {
-        alert('Chuyển sang trang thanh toán (chưa xử lý)');
-        // TODO: Chuyển đến trang thanh toán
+        window.location.href = `/payments/preview/${userId}`;
       });
 
-      // Cập nhật tổng giỏ hàng ngay khi tải trang
       updateTotal();
     });
