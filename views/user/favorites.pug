@@ -27,11 +27,9 @@ block scripts
         });
 
         if (response.ok) {
-          // Xóa sản phẩm khỏi giao diện
           const favoriteItem = document.querySelector(`.favorite-item[data-id="${productId}"]`);
           favoriteItem.remove();
 
-          // Kiểm tra nếu không còn sản phẩm nào, hiển thị thông báo
           const favoritesContainer = document.querySelector('.favorites-container');
           if (favoritesContainer.children.length === 0) {
             favoritesContainer.innerHTML = '<p>Không có sản phẩm nào trong danh sách yêu thích.</p>';
