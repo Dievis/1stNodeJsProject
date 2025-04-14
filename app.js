@@ -5,12 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
 let constants = require("./utils/constants");
-let { CreateErrorResponse } = require('./utils/responseHandler');
 let cors = require('cors');
 const jwt = require('jsonwebtoken');
 const userController = require('./controllers/users');
-let {createErrorResponse} = require('./utils/responseHandler');
-
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -22,7 +19,7 @@ app.use(cors({
   origin: '*'
 }));
 
-mongoose.connect("mongodb://127.0.0.1:27017/S6"); //Change this to your mongodb connection string
+mongoose.connect("mongodb://127.0.0.1:27017/S6");
 mongoose.connection.on('connected', () => {
   console.log("connected");
 });
@@ -39,31 +36,31 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware xử lý token
 app.use(async (req, res, next) => {
-    try {
-        const token = req.signedCookies.token; // Lấy token từ cookie đã ký
-        console.log('Token:', token); // Log token để kiểm tra
-        if (token) {
-            const decoded = jwt.verify(token, constants.SECRET_KEY); // Giải mã token
-            console.log('Decoded Token:', decoded); // Log thông tin giải mã token
-            const user = await userController.GetUserById(decoded.id); // Lấy thông tin người dùng từ DB
-            console.log('User:', user); // Log thông tin người dùng
-            if (user) {
-                res.locals.user = user; // Truyền thông tin user vào res.locals
-            } else {
-                res.locals.user = null; // Nếu không tìm thấy user, đặt null
-            }
-        } else {
-            res.locals.user = null; // Nếu không có token, user là null
-        }
-    } catch (error) {
-        console.error('Error verifying token:', error.message);
-        res.locals.user = null; // Nếu lỗi, user là null
+  try {
+    const token = req.signedCookies.token;
+    console.log('Token:', token);
+    if (token) {
+      const decoded = jwt.verify(token, constants.SECRET_KEY);
+      console.log('Decoded Token:', decoded);
+      const user = await userController.GetUserById(decoded.id);
+      console.log('User:', user);
+      if (user) {
+        res.locals.user = user;
+      } else {
+        res.locals.user = null;
+      }
+    } else {
+      res.locals.user = null;
     }
-    next();
+  } catch (error) {
+    console.error('Error verifying token:', error.message);
+    res.locals.user = null;
+  }
+  next();
 });
 
 app.use((req, res, next) => {
-  res.locals.activeRoute = req.path; // Truyền route hiện tại vào biến cục bộ
+  res.locals.activeRoute = req.path;
   next();
 });
 
@@ -81,13 +78,12 @@ app.use('/vouchers', require('./routes/vouchers'));
 app.use('/carts', require('./routes/carts'));
 app.use('/payments', require('./routes/payments'));
 
-
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// error handler
+// ✅ Sửa lỗi ở đây: error handler chuẩn
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
@@ -95,16 +91,7 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error', { error: err });
-});
-
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: req.app.get('env') === 'development' ? err : {}
-    });
+  res.render('error');
 });
 
 module.exports = app;
