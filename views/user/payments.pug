@@ -1,0 +1,72 @@
+extends layout
+
+block content
+  h1.text-center.mt-4 Xác nhận thanh toán
+
+  if selectedItems && selectedItems.length > 0
+    form(method="POST", action="/payments/confirm")
+      table.table.table-bordered.mt-4
+        thead
+          tr
+            th Tên sản phẩm
+            th Số lượng
+            th Giá mỗi sản phẩm
+            th Tổng giá trị
+        tbody
+          each item in selectedItems
+            tr
+              td= item.product.name
+              td= item.quantity
+              td #{item.product.price.toLocaleString('vi-VN')} VND
+              td #{(item.product.price * item.quantity).toLocaleString('vi-VN')} VND
+        tfoot
+          tr
+            td(colspan="3").text-end Tổng tiền:
+            td.text-primary #{totalPrice.toLocaleString('vi-VN')} VND
+          if totalDiscount > 0
+            tr
+              td(colspan="3").text-end Giảm giá:
+              td.text-success -#{totalDiscount.toLocaleString('vi-VN')} VND
+          tr
+            td(colspan="3").text-end Giá cuối cùng:
+            td.text-primary #{finalPrice.toLocaleString('vi-VN')} VND
+
+      // Voucher Section
+      .voucher-section.mt-4
+        h4.text-center.mb-3 Nhập mã voucher
+        each menu in menus
+          .voucher-item.d-flex.align-items-center.mb-2
+            span.flex-grow-1= menu.name
+            button.btn.btn-secondary.decrease-voucher(type="button", data-id=menu._id) -
+            input.voucher-quantity(type="number", name="voucherCodes[#{menu._id}]", value="0", min="0", readonly)
+            button.btn.btn-secondary.increase-voucher(type="button", data-id=menu._id) +
+
+      .actions.mt-4.text-center
+        button.btn.btn-primary(type="submit") Xác nhận thanh toán
+    .text-center.mt-3
+      a.btn.btn-secondary(href="/carts") Quay lại giỏ hàng
+  else
+    p.text-center.mt-4 Không có sản phẩm nào được chọn để thanh toán.
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Xử lý sự kiện tăng/giảm số lượng voucher
+      document.querySelectorAll('.increase-voucher').forEach(button => {
+        button.addEventListener('click', () => {
+          const input = button.previousElementSibling;
+          const currentValue = parseInt(input.value);
+          input.value = currentValue + 1;
+        });
+      });
+
+      document.querySelectorAll('.decrease-voucher').forEach(button => {
+        button.addEventListener('click', () => {
+          const input = button.nextElementSibling;
+          const currentValue = parseInt(input.value);
+          if (currentValue > 0) {
+            input.value = currentValue - 1;
+          }
+        });
+      });
+    });
