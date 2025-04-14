@@ -25,51 +25,74 @@ block content
                   a.btn.btn-outline-primary.rounded-pill(href=`/products/${product._id}`) View Details
                   button.btn.favorite-btn.ms-2.rounded-circle.px-2.bg-warning.border-0(type='button', data-id=product._id, title='Add to favorites')
                     if userFavorites && userFavorites.includes(product._id.toString())
-                      i.fas.fa-heart.text-danger 
+                      i.fas.fa-heart.text-danger
                     else
-                      i.far.fa-heart 
+                      i.far.fa-heart
                   button.btn.btn-success.ms-2.rounded-circle.px-2.add-to-cart-btn(type='button', data-id=product._id, title='Add to cart')
-                    i.fas.fa-plus 
+                    i.fas.fa-plus
       else
         p.text-center.text-muted No products available.
 
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
+      // Xử lý nút yêu thích
       const favButtons = document.querySelectorAll('.favorite-btn');
       favButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const icon = btn.querySelector('i');
-          const productId = btn.getAttribute('data-id');
-          const isFavorite = icon.classList.contains('text-danger'); 
+        // Thay thế nút bằng bản sao để xóa các sự kiện cũ
+        const clonedBtn = btn.cloneNode(true);
+        btn.replaceWith(clonedBtn);
+
+        // Gắn sự kiện mới cho nút đã được thay thế
+        clonedBtn.addEventListener('click', async (e) => {
+          const icon = clonedBtn.querySelector('i');
+          const productId = clonedBtn.getAttribute('data-id');
+          const isFavorite = icon.classList.contains('text-danger');
 
           try {
             if (isFavorite) {
-              await fetch(`/favorites/${productId}`, {
+              const response = await fetch(`/favorites/${productId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
               });
+              if (response.ok) {
+                icon.classList.remove('text-danger', 'fas');
+                icon.classList.add('far');
+              } else {
+                const result = await response.json();
+                alert('❌ Không thể xóa sản phẩm khỏi danh sách yêu thích: ' + result.message);
+              }
             } else {
-              await fetch(`/favorites`, {
+              const response = await fetch(`/favorites`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ productId })
               });
+              if (response.ok) {
+                icon.classList.add('text-danger', 'fas');
+                icon.classList.remove('far');
+              } else {
+                const result = await response.json();
+                alert('❌ Không thể thêm sản phẩm vào danh sách yêu thích: ' + result.message);
+              }
             }
-
-            icon.classList.toggle('text-danger'); 
-            icon.classList.toggle('fas'); 
-            icon.classList.toggle('far'); 
           } catch (error) {
             console.error('Error updating favorites:', error);
+            alert('⚠️ Đã xảy ra lỗi khi cập nhật danh sách yêu thích.');
           }
         });
       });
 
+      // Xử lý nút thêm vào giỏ hàng
       const cartButtons = document.querySelectorAll('.add-to-cart-btn');
       cartButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const productId = btn.getAttribute('data-id');
+        // Thay thế nút bằng bản sao để xóa các sự kiện cũ
+        const clonedBtn = btn.cloneNode(true);
+        btn.replaceWith(clonedBtn);
+
+        // Gắn sự kiện mới cho nút đã được thay thế
+        clonedBtn.addEventListener('click', async (e) => {
+          const productId = clonedBtn.getAttribute('data-id');
 
           try {
             const response = await fetch('/carts/add', {

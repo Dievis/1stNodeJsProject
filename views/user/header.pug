@@ -1,4 +1,3 @@
-// Navbar và các modal liên quan được đặt trong header để luôn xuất hiện trên toàn trang
 div.container(style='max-width: 960px;')
   nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.py-1.rounded-3.px-3
     .container-fluid
@@ -73,7 +72,6 @@ div.modal.fade#userInfoModal(tabindex="-1", aria-labelledby="userInfoModalLabel"
         button.btn.btn-warning(type="button", data-bs-toggle="modal", data-bs-target="#updatePasswordBtn") Cập nhật Mật khẩu
         button.btn.btn-info(type="button", data-bs-toggle="modal", data-bs-target="#updateAvatarModal") Cập nhật Avatar
 
-// Modal cập nhật Email
 div.modal.fade#updateEmailModal(tabindex="-1", aria-labelledby="updateEmailModalLabel", aria-hidden="true")
   .modal-dialog
     .modal-content
@@ -87,7 +85,6 @@ div.modal.fade#updateEmailModal(tabindex="-1", aria-labelledby="updateEmailModal
             input.form-control#newEmail(type="email", name="email", required)
           button.btn.btn-primary(type="submit") Cập nhật
 
-// Modal cập nhật Mật khẩu
 div.modal.fade#updatePasswordModal(tabindex="-1", aria-labelledby="updatePasswordModalLabel", aria-hidden="true")
   .modal-dialog
     .modal-content
@@ -104,7 +101,6 @@ div.modal.fade#updatePasswordModal(tabindex="-1", aria-labelledby="updatePasswor
             input.form-control#newPassword(type="password", name="newPassword", required)
           button.btn.btn-primary(type="submit") Cập nhật
 
-// Modal cập nhật Avatar
 div.modal.fade#updateAvatarModal(tabindex="-1", aria-labelledby="updateAvatarModalLabel", aria-hidden="true")
   .modal-dialog
     .modal-content
@@ -118,7 +114,6 @@ div.modal.fade#updateAvatarModal(tabindex="-1", aria-labelledby="updateAvatarMod
             input.form-control#avatar(type="file", name="avatar", accept="image/*", required)
           button.btn.btn-primary(type="submit") Cập nhật
 
-// Script xử lý sự kiện mở modal (để modal hiển thị thông tin cá nhân và các modal cập nhật)
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
@@ -135,7 +130,6 @@ block scripts
           if (response.ok) {
             const userInfo = await response.json();
 
-            // Cập nhật thông tin vào modal
             document.getElementById('userInfoUsername').textContent = userInfo.data.username || 'N/A';
             document.getElementById('userInfoEmail').textContent = userInfo.data.email || 'N/A';
             document.getElementById('userInfoRole').textContent = userInfo.data.role.name || 'N/A';
@@ -149,7 +143,6 @@ block scripts
         }
       });
 
-      // Gắn các modal update riêng
       document.getElementById('updateEmailBtn')?.addEventListener('click', () => {
         const updateEmailModal = new bootstrap.Modal(document.getElementById('updateEmailModal'));
         updateEmailModal.show();

@@ -66,14 +66,16 @@ block content
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', () => {
+      // Xử lý nút thêm đánh giá
       const reviewForm = document.querySelector('#review-form');
       if (reviewForm) {
-        reviewForm.replaceWith(reviewForm.cloneNode(true));
+        const clonedForm = reviewForm.cloneNode(true);
+        reviewForm.replaceWith(clonedForm);
 
-        reviewForm.addEventListener('submit', async (e) => {
-          e.preventDefault(); 
+        clonedForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
 
-          const formData = new FormData(reviewForm);
+          const formData = new FormData(clonedForm);
           const body = {
             productId: formData.get('productId'),
             rating: formData.get('rating'),
@@ -92,7 +94,7 @@ block scripts
             const result = await response.json();
             if (result.success) {
               alert('Đánh giá của bạn đã được thêm!');
-              location.reload(); 
+              location.reload();
             } else {
               alert('Thêm đánh giá thất bại: ' + result.message);
             }
@@ -100,12 +102,16 @@ block scripts
             console.error('Error adding review:', error);
             alert('Đã xảy ra lỗi khi thêm đánh giá.');
           }
-        }, { once: true });
+        });
       }
 
+      // Xử lý nút xóa đánh giá
       document.querySelectorAll('.delete-review-btn').forEach((button) => {
-        button.addEventListener('click', async (e) => {
-          const reviewId = button.getAttribute('data-review-id');
+        const clonedButton = button.cloneNode(true);
+        button.replaceWith(clonedButton);
+
+        clonedButton.addEventListener('click', async (e) => {
+          const reviewId = clonedButton.getAttribute('data-review-id');
           if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
             try {
               const response = await fetch(`/reviews/${reviewId}`, {
@@ -118,7 +124,7 @@ block scripts
               const result = await response.json();
               if (result.success) {
                 alert('Đánh giá của bạn đã được xóa!');
-                location.reload(); 
+                location.reload();
               } else {
                 alert('Xóa đánh giá thất bại: ' + result.message);
               }
@@ -130,10 +136,85 @@ block scripts
         });
       });
 
+      // Xử lý nút thêm vào giỏ hàng
+      const addToCartBtn = document.querySelector('.add-to-cart-btn');
+      if (addToCartBtn) {
+        const clonedAddToCartBtn = addToCartBtn.cloneNode(true);
+        addToCartBtn.replaceWith(clonedAddToCartBtn);
+
+        clonedAddToCartBtn.addEventListener('click', async (e) => {
+          const productId = clonedAddToCartBtn.getAttribute('data-id');
+
+          try {
+            const response = await fetch('/carts/add', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productId, quantity: 1 })
+            });
+
+            if (response.ok) {
+              alert('🛒 Sản phẩm đã được thêm vào giỏ hàng!');
+            } else {
+              const result = await response.json();
+              alert('❌ Không thể thêm sản phẩm vào giỏ hàng: ' + result.message);
+            }
+          } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert('⚠️ Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.');
+          }
+        });
+      }
+
+      // Xử lý nút yêu thích
+      const favoriteBtn = document.querySelector('.favorite-btn');
+      if (favoriteBtn) {
+        const clonedFavoriteBtn = favoriteBtn.cloneNode(true);
+        favoriteBtn.replaceWith(clonedFavoriteBtn);
+
+        clonedFavoriteBtn.addEventListener('click', async (e) => {
+          const icon = clonedFavoriteBtn.querySelector('i');
+          const productId = clonedFavoriteBtn.getAttribute('data-id');
+          const isFavorite = icon.classList.contains('text-danger');
+
+          try {
+            if (isFavorite) {
+              const response = await fetch(`/favorites/${productId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+              });
+              if (response.ok) {
+                icon.classList.remove('text-danger', 'fas');
+                icon.classList.add('far');
+              } else {
+                const result = await response.json();
+                alert('❌ Không thể xóa sản phẩm khỏi danh sách yêu thích: ' + result.message);
+              }
+            } else {
+              const response = await fetch(`/favorites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId })
+              });
+              if (response.ok) {
+                icon.classList.add('text-danger', 'fas');
+                icon.classList.remove('far');
+              } else {
+                const result = await response.json();
+                alert('❌ Không thể thêm sản phẩm vào danh sách yêu thích: ' + result.message);
+              }
+            }
+          } catch (error) {
+            console.error('Error updating favorites:', error);
+            alert('⚠️ Đã xảy ra lỗi khi cập nhật danh sách yêu thích.');
+          }
+        });
+      }
+
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
           e.preventDefault();
         }
       });
     });
+
 

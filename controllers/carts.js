@@ -1,14 +1,17 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\carts.js
 const Cart = require('../schemas/cart');
 const Product = require('../schemas/product');
 var menuController = require('../controllers/menus');
+const mongoose = require('mongoose');
 
 exports.getCartByUser = async (req, res) => {
     try {
         if (!req.user || !req.user._id) {
             return res.status(401).json({ success: false, message: 'Unauthorized: User not logged in' });
         }
-        const userId = req.user._id; 
-        const cart = await Cart.findOne({ user: userId }).populate('items.product'); 
+
+        const userId = req.user._id;
+        const cart = await Cart.findOne({ user: userId }).populate('items.product');
 
         if (!cart || cart.items.length === 0) {
             return res.render('user/carts', {
@@ -19,16 +22,23 @@ exports.getCartByUser = async (req, res) => {
             });
         }
 
-        let menus = await menuController.GetAllMenus();
-        const totalPrice = cart.items.reduce((total, item) => {
-            return total + (item.price * item.quantity * (1 - item.discount / 100));
+        // Lọc các sản phẩm không tồn tại
+        const validItems = cart.items.filter(item => item.product !== null);
+
+        // Xóa các sản phẩm không hợp lệ khỏi giỏ hàng
+        if (validItems.length !== cart.items.length) {
+            cart.items = validItems;
+            await cart.save();
+        }
+
+        const totalPrice = validItems.reduce((total, item) => {
+            return total + (item.product.price * item.quantity * (1 - item.product.discount / 100));
         }, 0);
 
         res.render('user/carts', {
             title: 'Giỏ hàng',
-            menus: menus,
-            cartItems: cart.items,
-            totalPrice: totalPrice, 
+            cartItems: validItems,
+            totalPrice: totalPrice,
             user: req.user
         });
     } catch (error) {
