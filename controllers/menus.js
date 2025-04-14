@@ -1,3 +1,5 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\menus.js
+
 const menuSchema = require('../schemas/menu');
 const slugify = require('slugify');
 
@@ -24,6 +26,25 @@ module.exports = {
             throw error;
         }
     },
+
+    GetMenusForAdmin: async function (req, res) {
+        try {
+            const menus = await menuSchema.find({}).populate('parent', 'text');
+            res.render('admin/menus', {
+                title: 'Quản lý Menu',
+                menus: menus,
+                user: req.user 
+            });
+        } catch (error) {
+            console.error('Error fetching menus for admin:', error.message);
+            res.status(500).render('error', {
+                title: 'Error',
+                message: 'Lỗi khi lấy danh sách menu.',
+                error: req.app.get('env') === 'development' ? error : {}
+            });
+        }
+    },
+
     CreateMenu: async function (body) {
         let objInput = {
             text: body.text,
@@ -36,20 +57,21 @@ module.exports = {
         let newMenu = new menuSchema(objInput);
         return await newMenu.save();
     },
+
     UpdateMenu: async function (id, body) {
-        let updatedObj = {};
-        if (body.text) {
-            updatedObj.text = body.text;
-            updatedObj.url = '/' + slugify(body.text, { lower: true });
+        try {
+            const updatedObj = {
+                text: body.text,
+                parent: body.parent || null // Nếu không có menu cha, đặt parent là null
+            };
+
+            return await menuSchema.findByIdAndUpdate(id, updatedObj, { new: true });
+        } catch (error) {
+            console.error('Error updating menu:', error.message);
+            throw new Error('Lỗi khi cập nhật menu.');
         }
-        if (body.parent) {
-            let parent = await menuSchema.findOne({ text: body.parent });
-            if (parent) {
-                updatedObj.parent = parent._id;
-            }
-        }
-        return await menuSchema.findByIdAndUpdate(id, updatedObj, { new: true });
     },
+
     DeleteMenu: async function (id) {
         return await menuSchema.findByIdAndDelete(id);
     }

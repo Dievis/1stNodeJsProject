@@ -5,14 +5,16 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
 let constants = require("./utils/constants");
+let { CreateErrorResponse } = require('./utils/responseHandler');
 let cors = require('cors');
 const jwt = require('jsonwebtoken');
 const userController = require('./controllers/users');
+let {createErrorResponse} = require('./utils/responseHandler');
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var adminRouter = require('./routes/admin');
-
 
 var app = express();
 
@@ -77,6 +79,7 @@ app.use('/favorites', require('./routes/favorites'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/vouchers', require('./routes/vouchers'));
 app.use('/carts', require('./routes/carts'));
+app.use('/payments', require('./routes/payments'));
 
 
 // catch 404 and forward to error handler
@@ -91,7 +94,17 @@ app.use(function (err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
-  CreateErrorResponse(res, err.status || 500, err.message);
+  res.status(err.status || 500);
+  res.render('error', { error: err });
+});
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
+        error: req.app.get('env') === 'development' ? err : {}
+    });
 });
 
 module.exports = app;

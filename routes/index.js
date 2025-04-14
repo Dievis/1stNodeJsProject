@@ -6,6 +6,8 @@ var menuController = require('../controllers/menus');
 let productSchema = require('../schemas/product');
 let { check_authentication } = require('../utils/check_auth');
 const FavoriteModel = require('../schemas/favorite');
+const categorySchema = require('../schemas/category');
+const { Voucher } = require('../schemas/voucher'); // Import đúng model Voucher
 
 /* GET home page. */
 router.get('/', check_authentication, async function (req, res, next) {
@@ -15,6 +17,11 @@ router.get('/', check_authentication, async function (req, res, next) {
         let products = await productSchema.find({ isDeleted: false }).populate(
             { path: 'category', select: 'name' }
         );
+
+        let vouchers = await Voucher.find({
+            isActive: true,
+            expirationDate: { $gte: new Date() }
+        });
 
         let userFavorites = [];
         if (req.user) {
@@ -26,6 +33,7 @@ router.get('/', check_authentication, async function (req, res, next) {
             title: 'Home Consumer Products',
             menus: menus,
             products: products,
+            vouchers: vouchers, // Truyền danh sách vouchers vào view
             userFavorites: userFavorites,
             user: res.locals.user // Truyền thông tin user vào giao diện
         });

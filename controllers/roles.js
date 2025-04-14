@@ -1,8 +1,15 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\roles.js
+
 let roleSchema = require('../schemas/role');
 
 module.exports = {
     GetAllRoles: async function () {
-        return await roleSchema.find({});
+        try {
+            return await roleSchema.find({});
+        } catch (error) {
+            console.error('Error fetching roles:', error.message);
+            throw new Error('Lỗi khi lấy danh sách vai trò.');
+        }
     },
     CreateARole: async function (name) {
         let newRole = new roleSchema({

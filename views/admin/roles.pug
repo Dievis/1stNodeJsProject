@@ -1,0 +1,177 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\roles.pug
+
+extends ../admin/layout
+
+block content
+  .container
+    h1.text-center.mb-4 Quản lý Vai Trò
+    if success
+      .alert.alert-success #{success}
+    if error
+      .alert.alert-danger #{error}
+    .d-flex.justify-content-between.mb-3
+      a.btn.btn-primary(href='#', data-bs-toggle="modal", data-bs-target="#addRoleModal")
+        i.fas.fa-plus-circle.me-2
+        | Thêm vai trò mới
+
+    if roles && roles.length > 0
+      .table-responsive
+        table.table.table-striped.table-hover
+          thead
+            tr
+              th Tên vai trò
+              th Hành động
+          tbody
+            each role in roles
+              tr(data-id=role._id)
+                td= role.name
+                td
+                  a.btn.btn-sm.btn-warning.me-2.edit-role(href='#', data-bs-toggle="modal", data-bs-target="#editRoleModal")
+                    i.fas.fa-edit.me-1
+                    | Sửa
+                  button.btn.btn-sm.btn-danger.delete-role
+                    i.fas.fa-trash.me-1
+                    | Xóa
+    else
+      p.text-center.text-muted Không có vai trò nào.
+
+  // Modal for adding role
+  .modal#addRoleModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Thêm vai trò mới
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#addRoleForm
+            .form-group
+              label(for="name") Tên vai trò
+              input.form-control(type="text", id="name", name="name", required)
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-success(type="submit") Thêm mới
+
+  // Modal for editing role
+  .modal#editRoleModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Sửa vai trò
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#editRoleForm
+            input(type="hidden", name="id")
+            .form-group
+              label(for="name") Tên vai trò
+              input.form-control(type="text", name="name", required)
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+          button.btn.btn-primary(type="submit", form="editRoleForm") Lưu thay đổi
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Xóa vai trò
+      document.querySelectorAll('.delete-role').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const row = e.target.closest('tr');
+          const roleId = row.getAttribute('data-id');
+          if (confirm('Bạn có chắc chắn muốn xóa vai trò này?')) {
+            try {
+              const response = await fetch(`/roles/${roleId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              const result = await response.json();
+              if (result.success) {
+                alert('Xóa vai trò thành công!');
+                row.remove();
+              } else {
+                alert('Xóa vai trò thất bại: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error deleting role:', error);
+              alert('Đã xảy ra lỗi khi xóa vai trò.');
+            }
+          }
+        });
+      });
+
+      // Sửa vai trò
+      document.querySelectorAll('.edit-role').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const row = e.target.closest('tr');
+          const roleId = row.getAttribute('data-id');
+          const name = row.children[0].innerText;
+
+          const form = document.querySelector('#editRoleForm');
+          form.querySelector('[name="id"]').value = roleId;
+          form.querySelector('[name="name"]').value = name;
+
+          $('#editRoleModal').modal('show');
+        });
+      });
+
+      // Gửi yêu cầu cập nhật vai trò
+      document.querySelector('#editRoleForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const roleId = form.querySelector('[name="id"]').value;
+        const body = {
+          name: form.querySelector('[name="name"]').value
+        };
+
+        try {
+          const response = await fetch(`/roles/${roleId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Cập nhật vai trò thành công!');
+            location.reload();
+          } else {
+            alert('Cập nhật vai trò thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error updating role:', error);
+          alert('Đã xảy ra lỗi khi cập nhật vai trò.');
+        }
+      });
+
+      // Thêm vai trò
+      document.querySelector('#addRoleForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const body = {
+          name: form.querySelector('[name="name"]').value
+        };
+
+        try {
+          const response = await fetch('/roles', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Thêm vai trò thành công!');
+            location.reload();
+          } else {
+            alert('Thêm vai trò thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error adding role:', error);
+          alert('Đã xảy ra lỗi khi thêm vai trò.');
+        }
+      });
+    });

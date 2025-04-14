@@ -1,0 +1,189 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\menus.pug
+
+extends ../admin/layout
+
+block content
+  .container
+    h1.text-center.mb-4 Quản lý Menu
+    .d-flex.justify-content-between.mb-3
+      a.btn.btn-primary(href='#', data-bs-toggle="modal", data-bs-target="#addMenuModal")
+        i.fas.fa-plus-circle.me-2
+        | Thêm menu mới
+
+    if menus && menus.length > 0
+      .table-responsive
+        table.table.table-striped.table-hover
+          thead
+            tr
+              th Tên menu
+              th URL
+              th Menu cha
+              th Hành động
+          tbody
+            each menu in menus
+              tr(data-id=menu._id data-parent-id=menu.parent ? menu.parent._id : '')
+                td= menu.text
+                td= menu.url || 'Không có URL'
+                td= menu.parent ? menu.parent.text : 'No Parent'
+                td
+                  button.btn.btn-sm.btn-warning.me-2.edit-menu(type="button", data-bs-toggle="modal", data-bs-target="#editMenuModal")
+                    i.fas.fa-edit.me-1
+                    | Sửa
+                  button.btn.btn-sm.btn-danger.delete-menu(type="button")
+                    i.fas.fa-trash.me-1
+                    | Xóa
+    else
+      p.text-center.text-muted Không có menu nào.
+
+  // Modal for adding menu
+  .modal#addMenuModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Thêm menu mới
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#addMenuForm
+            .form-group
+              label(for="text") Tên menu
+              input.form-control(type="text", name="text", required)
+            .form-group
+              label(for="parent") Menu cha (nếu có)
+              select.form-control(name="parent")
+                option(value="" selected) -- Không có menu cha --
+                each menu in menus
+                  option(value=menu._id)= menu.text
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-primary(type="submit") Thêm menu
+
+  // Modal for editing menu
+  .modal#editMenuModal(tabindex="-1" role="dialog")
+    .modal-dialog.modal-dialog-centered(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title Sửa menu
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          form#editMenuForm
+            input(type="hidden", name="id")
+            .form-group
+              label(for="text") Tên menu
+              input.form-control(type="text", name="text", required)
+            .form-group
+              label(for="parent") Menu cha (nếu có)
+              select.form-control(name="parent")
+                option(value="" selected) -- Không có menu cha --
+                each menu in menus
+                  option(value=menu._id)= menu.text
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-primary(type="submit") Lưu thay đổi
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Xóa menu
+      document.querySelectorAll('.delete-menu').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const row = e.target.closest('tr');
+          const menuId = row.getAttribute('data-id');
+          if (confirm('Bạn có chắc chắn muốn xóa menu này?')) {
+            try {
+              const response = await fetch(`/menus/${menuId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+              });
+              const result = await response.json();
+              if (result.success) {
+                alert('Xóa menu thành công!');
+                row.remove();
+              } else {
+                alert('Xóa menu thất bại: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error deleting menu:', error);
+              alert('Đã xảy ra lỗi khi xóa menu.');
+            }
+          }
+        });
+      });
+
+      // Sửa menu
+      document.querySelectorAll('.edit-menu').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const row = e.target.closest('tr');
+          const menuId = row.getAttribute('data-id');
+          const text = row.children[0].innerText;
+          const parent = row.children[1].innerText;
+
+          // Điền thông tin vào modal
+          const form = document.querySelector('#editMenuForm');
+          form.id.value = menuId;
+          form.text.value = text;
+          form.parent.value = parent;
+
+          // Hiển thị modal
+          $('#editMenuModal').modal('show');
+        });
+      });
+
+      // Gửi yêu cầu thêm menu
+      document.querySelector('#addMenuForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const body = {
+          text: form.text.value,
+          parent: form.parent.value || null // Nếu không có menu cha, gửi null
+        };
+
+        try {
+          const response = await fetch('/menus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Thêm menu thành công!');
+            location.reload();
+          } else {
+            alert('Thêm menu thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error adding menu:', error);
+          alert('Đã xảy ra lỗi khi thêm menu.');
+        }
+      });
+
+      // Gửi yêu cầu cập nhật menu
+      document.querySelector('#editMenuForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const menuId = form.id.value;
+        const body = {
+          text: form.text.value,
+          parent: form.parent.value || null // Nếu không có menu cha, gửi null
+        };
+
+        try {
+          const response = await fetch(`/menus/${menuId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Cập nhật menu thành công!');
+            location.reload();
+          } else {
+            alert('Cập nhật menu thất bại: ' + result.message);
+          }
+        } catch (error) {
+          console.error('Error updating menu:', error);
+          alert('Đã xảy ra lỗi khi cập nhật menu.');
+        }
+      });
+    });

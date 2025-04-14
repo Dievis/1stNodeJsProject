@@ -1,10 +1,12 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\views\admin\products.pug
+
 extends ../admin/layout
 
 block content
   .container
     h1.text-center.mb-4 Quản lý sản phẩm
     .d-flex.justify-content-between.mb-3
-      a.btn.btn-primary(href='#', data-toggle="modal", data-target="#addProductModal")
+      a.btn.btn-primary(href='#', data-bs-toggle="modal", data-bs-target="#addProductModal")
         i.fas.fa-plus-circle.me-2
         | Thêm sản phẩm mới
 
@@ -24,9 +26,9 @@ block content
                 td= product.name
                 td $#{product.price}
                 td= product.quantity
-                td= product.category ? product.category.name : 'Không có danh mục'
+                td(data-id=product.category ? product.category._id : '')= product.category ? product.category.name : 'Không có danh mục'
                 td
-                  a.btn.btn-sm.btn-warning.me-2.edit-product(href='#', data-toggle="modal", data-target="#editProductModal")
+                  a.btn.btn-sm.btn-warning.me-2.edit-product(href='#', data-bs-toggle="modal", data-bs-target="#editProductModal")
                     i.fas.fa-edit.me-1
                     | Sửa
                   button.btn.btn-sm.btn-danger.delete-product
@@ -41,7 +43,7 @@ block content
       .modal-content
         .modal-header
           h5.modal-title Thêm sản phẩm mới
-          button.close(type="button", data-dismiss="modal", aria-label="Close")
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
             span(aria-hidden="true") &times;
         .modal-body
           form#addProductForm
@@ -56,10 +58,13 @@ block content
               input.form-control(type="number", name="quantity", required)
             .form-group
               label(for="category") Danh mục
-              input.form-control(type="text", name="category", required)
-        .modal-footer
-          button.btn.btn-secondary(type="button", data-dismiss="modal") Đóng
-          button.btn.btn-primary(type="submit") Thêm sản phẩm
+              select.form-control(name="category", required)
+                option(value="" disabled selected) -- Chọn danh mục --
+                each category in categories
+                  option(value=category._id)= category.name
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-primary(type="submit") Thêm sản phẩm
 
   // Modal for editing product
   .modal#editProductModal(tabindex="-1" role="dialog")
@@ -67,7 +72,7 @@ block content
       .modal-content
         .modal-header
           h5.modal-title Sửa sản phẩm
-          button.close(type="button", data-dismiss="modal", aria-label="Close")
+          button.close(type="button", data-bs-dismiss="modal", aria-label="Close")
             span(aria-hidden="true") &times;
         .modal-body
           form#editProductForm
@@ -83,10 +88,13 @@ block content
               input.form-control(type="number", name="quantity", required)
             .form-group
               label(for="category") Danh mục
-              input.form-control(type="text", name="category", required)
-        .modal-footer
-          button.btn.btn-secondary(type="button", data-dismiss="modal") Đóng
-          button.btn.btn-primary(type="submit") Lưu thay đổi
+              select.form-control(name="category", required)
+                option(value="" disabled selected) -- Chọn danh mục --
+                each category in categories
+                  option(value=category._id)= category.name
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+              button.btn.btn-primary(type="submit") Lưu thay đổi
 
 block scripts
   script.
@@ -100,9 +108,7 @@ block scripts
             try {
               const response = await fetch(`/products/${productId}`, {
                 method: 'DELETE',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
               });
               const result = await response.json();
               if (result.success) {
@@ -127,7 +133,7 @@ block scripts
           const name = row.children[0].innerText;
           const price = row.children[1].innerText.replace('$', '');
           const quantity = row.children[2].innerText;
-          const category = row.children[3].innerText;
+          const categoryId = row.children[3].getAttribute('data-id');
 
           // Điền thông tin vào modal
           const form = document.querySelector('#editProductForm');
@@ -135,7 +141,7 @@ block scripts
           form.name.value = name;
           form.price.value = price;
           form.quantity.value = quantity;
-          form.category.value = category;
+          form.category.value = categoryId;
 
           // Hiển thị modal
           $('#editProductModal').modal('show');
@@ -147,24 +153,22 @@ block scripts
         e.preventDefault();
         const form = e.target;
         const body = {
-          name: form.name.value,
-          price: form.price.value,
-          quantity: form.quantity.value,
-          category: form.category.value
-        };
+          name: form.querySelector('[name="name"]').value,
 
+          price: form.querySelector('[name="price"]').value,
+          quantity: form.querySelector('[name="quantity"]').value,
+          category: form.querySelector('[name="category"]').value
+        };
         try {
           const response = await fetch('/products', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
           });
           const result = await response.json();
           if (result.success) {
             alert('Thêm sản phẩm thành công!');
-            location.reload(); // Tải lại trang
+            location.reload();
           } else {
             alert('Thêm sản phẩm thất bại: ' + result.message);
           }
@@ -189,15 +193,13 @@ block scripts
         try {
           const response = await fetch(`/products/${productId}`, {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
           });
           const result = await response.json();
           if (result.success) {
             alert('Cập nhật sản phẩm thành công!');
-            location.reload(); // Tải lại trang
+            location.reload();
           } else {
             alert('Cập nhật sản phẩm thất bại: ' + result.message);
           }

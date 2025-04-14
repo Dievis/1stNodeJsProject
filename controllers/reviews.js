@@ -1,20 +1,26 @@
+//- filepath: d:\Github\TPD\1stNodeJsProject\controllers\reviews.js
+
 const ReviewModel = require('../schemas/review');
 
 // Thêm review
 async function addReview(userId, productId, rating, comment) {
     try {
+        console.log('Adding review:', { userId, productId, rating, comment }); // Log dữ liệu nhận được
         const review = new ReviewModel({
             user: userId,
             product: productId,
             rating: rating,
             comment: comment
         });
+
         await review.save();
+        await review.populate('user', 'username'); // 👈 Thêm dòng này để có user.username
         return review;
     } catch (error) {
         throw error;
     }
 }
+
 
 // Lấy danh sách review của sản phẩm
 async function getReviewsByProduct(productId) {
@@ -57,6 +63,8 @@ async function deleteReview(reviewId) {
         throw error;
     }
 }
+
+
 
 module.exports = {
     addReview,
