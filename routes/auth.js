@@ -154,9 +154,17 @@ router.get('/logout', function (req, res, next) {
     CreateCookieResponse(res, 'token', "", Date.now());
     CreateSuccessResponse(res, 200, { message: "Logged out successfully" });
 });
-router.get('/me', check_authentication, function (req, res, next) {
-    CreateSuccessResponse(res, 200, req.user)
-})
+router.get('/me', check_authentication, (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      username: req.user.username,
+      email: req.user.email,
+      role: req.user.role,
+      avatar: req.user.avatar
+    }
+  });
+});
 router.post('/change_password', check_authentication,
     function (req, res, next) {
         try {

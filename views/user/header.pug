@@ -1,51 +1,169 @@
+// Navbar và các modal liên quan được đặt trong header để luôn xuất hiện trên toàn trang
 div.container(style='max-width: 960px;')
   nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.py-1.rounded-3.px-3
     .container-fluid
       // Logo
       a.navbar-brand(href='/') MyApp
 
-    button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#navbarNav', aria-controls='navbarNav', aria-expanded='false', aria-label='Toggle navigation')
-      span.navbar-toggler-icon
-  
-    .collapse.navbar-collapse.mt-4
+      button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#navbarNav', aria-controls='navbarNav', aria-expanded='false', aria-label='Toggle navigation')
+        span.navbar-toggler-icon
 
-    .collapse.navbar-collapse#navbarNav
-      ul.navbar-nav.me-auto.mb-2.mb-lg-0
-        if menus && menus.length > 0
-          each menu in menus
-            if !['products', 'categories'].includes(menu.text.toLowerCase()) || (user && user.role === 'admin')
-              li.nav-item
-                a.nav-link(href=menu.url)
-                  if menu.text.toLowerCase() === 'home'
-                    i.fas.fa-home
-                  else
-                    = menu.text
-        else
+      .collapse.navbar-collapse#navbarNav
+        ul.navbar-nav.me-auto.mb-2.mb-lg-0
+          if menus && menus.length > 0
+            each menu in menus
+              if !['products', 'categories'].includes(menu.text.toLowerCase()) || (user && user.role === 'admin')
+                li.nav-item
+                  a.nav-link(href=menu.url)
+                    if menu.text.toLowerCase() === 'home'
+                      i.fas.fa-home
+                    else
+                      = menu.text
+          else
+            li.nav-item
+              a.nav-link(href='#') No menus available
+          if user
+            li.nav-item
+              a.nav-link(href='/vouchers/user') VouchersXEM
+        ul.navbar-nav
           li.nav-item
-            a.nav-link(href='#') No menus available
-        if user
+            a.btn.btn-danger.ms-2(href='/favorites', title='Favorites')
+              i.fas.fa-heart
           li.nav-item
-            a.nav-link(href='/vouchers/user') VouchersXEM
-      ul.navbar-nav
-        li.nav-item
-          a.btn.btn-danger.ms-2(href='/favorites', title='Favorites')
-            i.fas.fa-heart
+            a.btn.btn-warning.ms-2(href='/carts', title='Cart')
+              i.fas.fa-shopping-cart
+          if user
+            li.nav-item.dropdown
+              a.nav-link.dropdown-toggle(href='#', id='userDropdown', role='button', data-bs-toggle='dropdown', aria-expanded='false')
+                i.fas.fa-user-circle.me-1
+                | #{user.username}
+              ul.dropdown-menu.dropdown-menu-end(aria-labelledby='userDropdown')
+                li
+                  a.dropdown-item(href='#', data-bs-toggle="modal", data-bs-target="#userInfoModal") Profile
+                li
+                  form(action='/auth/logout', method='POST')
+                    button.dropdown-item(type='submit') Logout
+          else
+            li.nav-item
+              a.btn.btn-primary.ms-2(href='/auth/login') Login
 
-        li.nav-item
-          a.btn.btn-warning.ms-2(href='/carts', title='Cart')
-            i.fas.fa-shopping-cart
+div.modal.fade#userInfoModal(tabindex="-1", aria-labelledby="userInfoModalLabel", aria-hidden="true")
+  .modal-dialog
+    .modal-content
+      .modal-header
+        h5.modal-title#userInfoModalLabel Thông tin của bạn
+        button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+      .modal-body
+        ul.list-group
+          li.list-group-item
+            strong Tên đăng nhập: 
+            span#userInfoUsername.text-muted
+          li.list-group-item
+            strong Email: 
+            span#userInfoEmail.text-muted
+          li.list-group-item
+            strong Vai trò: 
+            span#userInfoRole.text-muted
+          li.list-group-item
+            strong Avatar: 
+            img#userInfoAvatar.img-thumbnail(src="", alt="Avatar", width="100")
+      .modal-footer
+        button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Đóng
+        button.btn.btn-primary(type="button", data-bs-toggle="modal", data-bs-target="#updateEmailBtn") Cập nhật Email
+        button.btn.btn-warning(type="button", data-bs-toggle="modal", data-bs-target="#updatePasswordBtn") Cập nhật Mật khẩu
+        button.btn.btn-info(type="button", data-bs-toggle="modal", data-bs-target="#updateAvatarModal") Cập nhật Avatar
 
-        if user
-          li.nav-item.dropdown
-            a.nav-link.dropdown-toggle(href='#', id='userDropdown', role='button', data-bs-toggle='dropdown', aria-expanded='false')
-              i.fas.fa-user-circle.me-1
-              | #{user.username}
-            ul.dropdown-menu.dropdown-menu-end(aria-labelledby='userDropdown')
-              li
-                a.dropdown-item(href='/profile') Profile
-              li
-                form(action='/auth/logout', method='POST')
-                  button.dropdown-item(type='submit') Logout
-        else
-          li.nav-item
-            a.btn.btn-primary.ms-2(href='/auth/login') Login
+// Modal cập nhật Email
+div.modal.fade#updateEmailModal(tabindex="-1", aria-labelledby="updateEmailModalLabel", aria-hidden="true")
+  .modal-dialog
+    .modal-content
+      .modal-header
+        h5.modal-title#updateEmailModalLabel Cập nhật Email
+        button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+      .modal-body
+        form#updateEmailForm
+          .mb-3
+            label(for="newEmail") Email mới
+            input.form-control#newEmail(type="email", name="email", required)
+          button.btn.btn-primary(type="submit") Cập nhật
+
+// Modal cập nhật Mật khẩu
+div.modal.fade#updatePasswordModal(tabindex="-1", aria-labelledby="updatePasswordModalLabel", aria-hidden="true")
+  .modal-dialog
+    .modal-content
+      .modal-header
+        h5.modal-title#updatePasswordModalLabel Cập nhật Mật khẩu
+        button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+      .modal-body
+        form#updatePasswordForm
+          .mb-3
+            label(for="oldPassword") Mật khẩu cũ
+            input.form-control#oldPassword(type="password", name="oldPassword", required)
+          .mb-3
+            label(for="newPassword") Mật khẩu mới
+            input.form-control#newPassword(type="password", name="newPassword", required)
+          button.btn.btn-primary(type="submit") Cập nhật
+
+// Modal cập nhật Avatar
+div.modal.fade#updateAvatarModal(tabindex="-1", aria-labelledby="updateAvatarModalLabel", aria-hidden="true")
+  .modal-dialog
+    .modal-content
+      .modal-header
+        h5.modal-title#updateAvatarModalLabel Cập nhật Avatar
+        button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+      .modal-body
+        form#updateAvatarForm(enctype="multipart/form-data")
+          .mb-3
+            label(for="avatar") Chọn ảnh mới
+            input.form-control#avatar(type="file", name="avatar", accept="image/*", required)
+          button.btn.btn-primary(type="submit") Cập nhật
+
+// Script xử lý sự kiện mở modal (để modal hiển thị thông tin cá nhân và các modal cập nhật)
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const userInfoModalEl = document.getElementById('userInfoModal');
+      const userInfoModal = new bootstrap.Modal(userInfoModalEl);
+
+      userInfoModalEl.addEventListener('shown.bs.modal', async () => {
+        try {
+          const response = await fetch('/auth/me', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (response.ok) {
+            const userInfo = await response.json();
+
+            // Cập nhật thông tin vào modal
+            document.getElementById('userInfoUsername').textContent = userInfo.data.username || 'N/A';
+            document.getElementById('userInfoEmail').textContent = userInfo.data.email || 'N/A';
+            document.getElementById('userInfoRole').textContent = userInfo.data.role.name || 'N/A';
+            document.getElementById('userInfoAvatar').src = userInfo.data.avatar || '/default-avatar.png';
+          } else {
+            alert('Không thể tải thông tin của bạn.');
+          }
+        } catch (error) {
+          console.error('Error fetching user info:', error);
+          alert('Đã xảy ra lỗi khi tải thông tin của bạn.');
+        }
+      });
+
+      // Gắn các modal update riêng
+      document.getElementById('updateEmailBtn')?.addEventListener('click', () => {
+        const updateEmailModal = new bootstrap.Modal(document.getElementById('updateEmailModal'));
+        updateEmailModal.show();
+      });
+
+      document.getElementById('updatePasswordBtn')?.addEventListener('click', () => {
+        const updatePasswordModal = new bootstrap.Modal(document.getElementById('updatePasswordModal'));
+        updatePasswordModal.show();
+      });
+
+      document.getElementById('updateAvatarBtn')?.addEventListener('click', () => {
+        const updateAvatarModal = new bootstrap.Modal(document.getElementById('updateAvatarModal'));
+        updateAvatarModal.show();
+      });
+    });
+
+
